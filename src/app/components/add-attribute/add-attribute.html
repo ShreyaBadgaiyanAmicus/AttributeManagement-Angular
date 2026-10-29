@@ -1,0 +1,149 @@
+
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-header">
+      <button
+        type="button"
+        class="back-button"
+        (click)="back.emit()"
+      >
+        ← Back to List
+      </button>
+
+      <h1>Add Attribute</h1>
+      <p>Enter the details below to create a new attribute.</p>
+    </div>
+
+    <form [formGroup]="attributeForm" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="form-field">
+        <label for="attributeName">Attribute Name <span>*</span></label>
+        <input
+          id="attributeName"
+          type="text"
+          formControlName="AttributeName"
+          placeholder="e.g. Employee Code"
+          [class.invalid]="attributeForm.controls.AttributeName.invalid &&
+            (attributeForm.controls.AttributeName.touched || submitted)"
+        />
+
+        @if (attributeForm.controls.AttributeName.invalid &&
+          (attributeForm.controls.AttributeName.touched || submitted)) {
+          <div class="error-message">
+            @if (attributeForm.controls.AttributeName.hasError('required')) {
+              <p>Attribute name is required.</p>
+            }
+            @if (attributeForm.controls.AttributeName.hasError('minlength')) {
+              <p>Attribute name must contain at least 3 characters.</p>
+            }
+            @if (attributeForm.controls.AttributeName.hasError('specialCharacters')) {
+              <p>Only letters, numbers, spaces, and hyphens are allowed.</p>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="businessUnit">Business Unit <span>*</span></label>
+        <select
+          id="businessUnit"
+          formControlName="BusinessUnitId"
+          (change)="onBusinessUnitChange()"
+          [class.invalid]="attributeForm.controls.BusinessUnitId.invalid &&
+            (attributeForm.controls.BusinessUnitId.touched || submitted)"
+        >
+          <option [ngValue]="null">Select a business unit</option>
+
+          @for (unit of businessUnits; track unit.BusinessId) {
+            <option [ngValue]="unit.BusinessId">
+              {{ unit.BusinessName }}
+            </option>
+          }
+        </select>
+
+        @if (attributeForm.controls.BusinessUnitId.invalid &&
+          (attributeForm.controls.BusinessUnitId.touched || submitted)) {
+          <p class="error-message">Please select a business unit.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="customerLocation">
+          Customer Location <span>*</span>
+        </label>
+
+        <select
+          id="customerLocation"
+          formControlName="CustomerLocationId"
+          [class.invalid]="attributeForm.controls.CustomerLocationId.invalid &&
+            (attributeForm.controls.CustomerLocationId.touched || submitted)"
+        >
+          <option [ngValue]="null">Select a customer location</option>
+
+          @for (location of customerLocations; track location.CustomerLocationId) {
+            <option [ngValue]="location.CustomerLocationId">
+              {{ location.CustomerLocationName }}
+            </option>
+          }
+        </select>
+
+        @if (attributeForm.controls.CustomerLocationId.invalid &&
+          (attributeForm.controls.CustomerLocationId.touched || submitted)) {
+          <p class="error-message">Please select a customer location.</p>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="company">Company <span>*</span></label>
+
+        <select
+          id="company"
+          formControlName="CompanyId"
+          [class.invalid]="attributeForm.controls.CompanyId.invalid &&
+            (attributeForm.controls.CompanyId.touched || submitted)"
+        >
+          <option [ngValue]="null">Select a company</option>
+
+          @for (company of companies; track company.CompanyId) {
+            <option [ngValue]="company.CompanyId">
+              {{ company.CompanyName }}
+            </option>
+          }
+        </select>
+
+        @if (attributeForm.controls.CompanyId.invalid &&
+          (attributeForm.controls.CompanyId.touched || submitted)) {
+          <p class="error-message">Please select a company.</p>
+        }
+      </div>
+
+
+      <div class="checkbox-field">
+        <input
+          id="isActive"
+          type="checkbox"
+          formControlName="IsActive"
+        />
+        <label for="isActive">Active</label>
+      </div>
+
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          [disabled]="attributeForm.invalid"
+          [attr.title]="attributeForm.invalid
+            ? 'Complete all required fields correctly before submitting.'
+            : 'Submit attribute'"
+        >
+          Add Attribute
+        </button>
+      </div>
+
+
+      @if (successMessage) {
+        <p class="success-message">{{ successMessage }}</p>
+      }
+    </form>
+  </div>
+</div>

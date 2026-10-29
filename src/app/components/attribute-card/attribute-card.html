@@ -1,0 +1,22 @@
+<div class="attribute-card">
+  <div class="card-header">
+    <h3>{{ attribute.AttributeName }}</h3>
+
+    <span
+      class="status"
+      [class.active]="attribute.IsActive"
+      [class.inactive]="!attribute.IsActive">
+      {{ attribute.IsActive ? 'Active' : 'Inactive' }}
+    </span>
+  </div>
+
+  <p><strong>ID:</strong> {{ attribute.AttributeId }}</p>
+  <p><strong>Business Unit:</strong> {{ attribute.BusinessUnitName }}</p>
+  <p><strong>Location:</strong> {{ attribute.CustomerLocationName }}</p>
+  <p><strong>Company:</strong> {{ attribute.CompanyName }}</p>
+  <p><strong>Created By:</strong> {{ attribute.CreatedBy }}</p>
+  <p>
+    <strong>Created On:</strong>
+    {{ attribute.CreatedOn | relativeTime }}
+  </p>
+</div>

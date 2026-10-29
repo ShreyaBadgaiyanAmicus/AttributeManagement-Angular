@@ -1,0 +1,222 @@
+:host {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --heading-color: #172554;
+  --text-color: #1e293b;
+  --label-color: #334155;
+  --secondary-text: #64748b;
+  --muted-color: #94a3b8;
+  --border-color: #e2e8f0;
+  --input-border: #cbd5e1;
+  --surface-color: #ffffff;
+  --page-background: #f8fafc;
+  --input-text: #0f172a;
+  --error-color: #dc2626;
+  --success-color: #166534;
+  --success-background: #f0fdf4;
+  --success-border: #bbf7d0;
+  --focus-ring: rgb(59 130 246 / 12%);
+  --error-ring: rgb(220 38 38 / 10%);
+  --card-shadow: 0 8px 30px rgb(15 23 42 / 6%);
+  --radius-small: 8px;
+  --radius-medium: 9px;
+  --radius-large: 16px;
+}
+
+
+.form-page {
+  min-height: 100vh;
+  padding: 36px 20px;
+  box-sizing: border-box;
+  background: var(--page-background);
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--text-color);
+}
+
+
+.form-card {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-large);
+  background: var(--surface-color);
+  box-shadow: var(--card-shadow);
+}
+
+
+.form-header {
+  margin-bottom: 28px;
+}
+
+.form-header h1 {
+  margin: 0 0 8px;
+  color: var(--heading-color);
+  font-size: 28px;
+}
+
+.form-header p {
+  margin: 0;
+  color: var(--secondary-text);
+  font-size: 14px;
+}
+
+
+.back-button {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 9px 14px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-small);
+  background: var(--surface-color);
+  color: var(--label-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.back-button:hover {
+  border-color: var(--primary-color);
+  background: var(--page-background);
+  color: var(--primary-hover);
+}
+
+.back-button:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.form-field label {
+  color: var(--label-color);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-field label span {
+  color: var(--error-color);
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-small);
+  background: var(--surface-color);
+  color: var(--input-text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+
+.form-field input.invalid,
+.form-field select.invalid {
+  border: 1px solid var(--error-color);
+}
+
+.form-field input.invalid:focus,
+.form-field select.invalid:focus {
+  box-shadow: 0 0 0 3px var(--error-ring);
+}
+
+
+.error-message {
+  margin: 0;
+  color: var(--error-color);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.error-message p {
+  margin: 0;
+}
+
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 26px;
+}
+
+.checkbox-field input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.checkbox-field label {
+  color: var(--label-color);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+
+.form-actions button {
+  width: 100%;
+  padding: 13px 18px;
+  border: none;
+  border-radius: var(--radius-medium);
+  background: var(--primary-color);
+  color: var(--surface-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.form-actions button:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.form-actions button:disabled {
+  background: var(--muted-color);
+  cursor: not-allowed;
+}
+
+
+.success-message {
+  margin: 18px 0 0;
+  padding: 12px;
+  border: 1px solid var(--success-border);
+  border-radius: var(--radius-small);
+  background: var(--success-background);
+  color: var(--success-color);
+  font-size: 14px;
+}
+
+
+@media (max-width: 600px) {
+  .form-page {
+    padding: 20px 12px;
+  }
+
+  .form-card {
+    padding: 22px 18px;
+  }
+
+  .form-header h1 {
+    font-size: 24px;
+  }
+}

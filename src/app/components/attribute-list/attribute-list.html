@@ -1,0 +1,135 @@
+@if (showAddAttribute) {
+  <app-add-attribute
+    (back)="backToAttributeList()"
+    (attributeAdded)="addAttribute($event)"
+  />
+} @else if (selectedAttribute) {
+  <app-edit-attribute
+    [attribute]="selectedAttribute"
+    (save)="saveEditedAttribute($event)"
+    (cancel)="cancelEditAttribute()"
+  />
+} @else {
+  <div class="page-container">
+
+    <div class="page-header">
+      <div>
+        <h1>Attribute Management</h1>
+        <p>View your business attributes in table or card format.</p>
+      </div>
+
+      <div class="header-actions">
+        <span class="record-count">
+          Total Attributes: {{ attributes.length }}
+        </span>
+
+        <button type="button" (click)="openAddAttribute()">
+          + Add Attribute
+        </button>
+      </div>
+    </div>
+
+    <div class="search-container">
+      <input
+        type="text"
+        placeholder="Search by attribute or business unit..."
+        [(ngModel)]="searchTerm"
+      />
+    </div>
+
+
+    <div class="view-toggle">
+      <button
+        type="button"
+        [class.selected]="viewMode === 'table'"
+        [attr.aria-pressed]="viewMode === 'table'"
+        (click)="setView('table')"
+      >
+        Table View
+      </button>
+
+      <button
+        type="button"
+        [class.selected]="viewMode === 'card'"
+        [attr.aria-pressed]="viewMode === 'card'"
+        (click)="setView('card')"
+      >
+        Card View
+      </button>
+    </div>
+
+    @if (viewMode === 'table') {
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Attribute Name</th>
+              <th>Business Unit</th>
+              <th>Location</th>
+              <th>Company</th>
+              <th>Status</th>
+              <th>Created By</th>
+              <th>Created On</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (attribute of attributes; track attribute.AttributeId) {
+              <tr *appFilterBy="attribute; term: searchTerm">
+                <td>{{ attribute.AttributeId }}</td>
+                <td class="attribute-name">
+                  {{ attribute.AttributeName }}
+                </td>
+                <td>{{ attribute.BusinessUnitName }}</td>
+                <td>{{ attribute.CustomerLocationName }}</td>
+                <td>{{ attribute.CompanyName }}</td>
+                <td>
+                  <span [appActiveStatus]="attribute">
+                    {{ attribute.IsActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>{{ attribute.CreatedBy }}</td>
+                <td>{{ attribute.CreatedOn | relativeTime }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="edit-button"
+                    (click)="openEditAttribute(attribute)"
+                  >
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="empty-message">
+                  No attributes available.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="card-grid">
+        @for (attribute of attributes; track attribute.AttributeId) {
+          <div *appFilterBy="attribute; term: searchTerm" class="attribute-card-wrapper">
+            <app-attribute-card [attribute]="attribute" />
+
+            <button
+              type="button"
+              class="edit-button"
+              (click)="openEditAttribute(attribute)"
+            >
+              Edit
+            </button>
+          </div>
+        } @empty {
+          <p class="empty-message">No attributes available.</p>
+        }
+      </div>
+    }
+  </div>
+}

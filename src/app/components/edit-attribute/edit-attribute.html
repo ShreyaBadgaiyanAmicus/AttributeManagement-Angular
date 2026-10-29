@@ -1,0 +1,109 @@
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-header">
+      <button
+        type="button"
+        class="back-button"
+        (click)="onCancel()"
+      >
+        ← Back to List
+      </button>
+
+      <h1>Edit Attribute</h1>
+      <p>Update the attribute details below.</p>
+    </div>
+
+    @if (hasUnsavedChanges) {
+      <p class="warning-message" role="status">
+        You have unsaved changes.
+      </p>
+    }
+
+    <form #editForm="ngForm" (ngSubmit)="onSave()">
+      <div class="form-field">
+        <label for="attributeName">Attribute Name *</label>
+        <input
+          id="attributeName"
+          name="AttributeName"
+          type="text"
+          [(ngModel)]="editedAttribute.AttributeName"
+          required
+          minlength="3"
+          pattern="[a-zA-Z0-9 -]+"
+          #attributeName="ngModel"
+          [class.invalid]="attributeName.invalid &&
+            (attributeName.touched || editForm.submitted)"
+        />
+
+        @if (attributeName.invalid &&
+          (attributeName.touched || editForm.submitted)) {
+          <div class="error-message">
+            @if (attributeName.hasError('required')) {
+              <p>Attribute name is required.</p>
+            }
+            @if (attributeName.hasError('minlength')) {
+              <p>Enter at least 3 characters.</p>
+            }
+            @if (attributeName.hasError('pattern')) {
+              <p>Only letters, numbers, spaces, and hyphens are allowed.</p>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="businessUnit">Business Unit</label>
+        <input
+          id="businessUnit"
+          name="BusinessUnitName"
+          type="text"
+          [(ngModel)]="editedAttribute.BusinessUnitName"
+          required
+        />
+      </div>
+
+
+      <div class="form-field">
+        <label for="customerLocation">Customer Location</label>
+        <input
+          id="customerLocation"
+          name="CustomerLocationName"
+          type="text"
+          [(ngModel)]="editedAttribute.CustomerLocationName"
+          required
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="company">Company</label>
+        <input
+          id="company"
+          name="CompanyName"
+          type="text"
+          [(ngModel)]="editedAttribute.CompanyName"
+          required
+        />
+      </div>
+
+
+      <div class="checkbox-field">
+        <input
+          id="isActive"
+          name="IsActive"
+          type="checkbox"
+          [(ngModel)]="editedAttribute.IsActive"
+        />
+        <label for="isActive">Active</label>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          [disabled]="editForm.invalid || !hasUnsavedChanges"
+        >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
