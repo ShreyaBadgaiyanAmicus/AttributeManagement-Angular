@@ -9,7 +9,7 @@ import {
 
 import { DatePipe } from '@angular/common';
 import { IAttribute } from '../../models/attribute.model';
-import { RelativeTimePipe } from '../../pipes/relative-time-pipe';
+import { RelativeTimePipe } from '../../../../shared/pipes/relative-time-pipe';
 
 @Component({
   selector: 'app-attribute-card',

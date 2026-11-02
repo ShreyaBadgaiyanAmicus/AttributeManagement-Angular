@@ -2,13 +2,13 @@ import { Component } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { AttributeService } from '../../services/attribute';
 import { IAttribute } from '../../models/attribute.model';
-import { AttributeCardComponent } from '../attribute-card/attribute-card';
-import { ActiveStatus } from '../../directives/active-status';
-import { RelativeTimePipe } from '../../pipes/relative-time-pipe';
-import { FilterBy } from '../../directives/filter-by';
 import { FormsModule } from '@angular/forms';
 import { AddAttributeComponent } from '../add-attribute/add-attribute';
 import { EditAttributeComponent } from '../edit-attribute/edit-attribute';
+import { AttributeCardComponent } from '../../components/attribute-card/attribute-card';
+import { ActiveStatus } from '../../../../shared/directives/active-status';
+import { RelativeTimePipe } from '../../../../shared/pipes/relative-time-pipe';
+import { FilterBy } from '../../../../shared/directives/filter-by';
 
 @Component({
   selector: 'app-attribute-list',

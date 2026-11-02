@@ -917,3 +917,172 @@ Reactive Forms are generally easier to unit test because the form model and vali
 
 ### 7. Console Output
 ![Console Output](Screenshots/console.png)
+
+
+
+## Assignment 2 — Data Layer: Routing, RxJS, HTTP Integration & State Management
+
+### 1. Restructure into feature modules:
+   • AttributeModule (List, Card, Add, Edit components from Assignment 1)
+   • SharedModule (directives, pipes, shared UI components)
+   • CoreModule (services, interceptors)
+   Write in README: Why separate Core from Shared? What goes where? What happens if you import CoreModule inside a lazy-loaded module?
+
+``` bash
+C:\CUSTOMAPPS\ANGULAR\ATTRIBUTEMANAGEMENTAPP\SRC\APP
+|   app.config.ts
+|   app.css
+|   app.html
+|   app.routes.ts
+|   app.spec.ts
+|   app.ts
+|   
++---core
+|   +---interceptors
+|   \---services
++---features
+|   \---attributes
+|       +---components
+|       |   \---attribute-card
+|       |           attribute-card.css
+|       |           attribute-card.html
+|       |           attribute-card.spec.ts
+|       |           attribute-card.ts
+|       |           
+|       +---models
+|       |       attribute.model.ts
+|       |       
+|       +---pages
+|       |   +---add-attribute
+|       |   |       add-attribute.css
+|       |   |       add-attribute.html
+|       |   |       add-attribute.spec.ts
+|       |   |       add-attribute.ts
+|       |   |       
+|       |   +---attribute-list
+|       |   |       attribute-list.css
+|       |   |       attribute-list.html
+|       |   |       attribute-list.spec.ts
+|       |   |       attribute-list.ts
+|       |   |       
+|       |   \---edit-attribute
+|       |           edit-attribute.css
+|       |           edit-attribute.html
+|       |           edit-attribute.spec.ts
+|       |           edit-attribute.ts
+|       |           
+|       \---services
+|               attribute.spec.ts
+|               attribute.ts
+|               lookup.spec.ts
+|               lookup.ts
+|               
+\---shared
+    +---components
+    +---directives
+    |       active-status.spec.ts
+    |       active-status.ts
+    |       filter-by.spec.ts
+    |       filter-by.ts
+    |       
+    \---pipes
+            relative-time-pipe.spec.ts
+            relative-time-pipe.ts
+```
+
+
+#### 1. Why separate Core from Shared?
+
+Core and Shared are separated to maintain a clear separation of responsibilities.
+
+- **Core:** Contains application-wide services and interceptors that provide functionality across the application.
+- **Shared:** Contains reusable components, directives and pipes that can be used by multiple features.
+
+This separation avoids mixing application-level functionality with reusable UI elements and utilities.
+
+#### 2. What goes where?
+
+| Folder | Contents |
+|---|---|
+| Core | Application-wide services, authentication services, HTTP interceptors |
+| Shared | Reusable UI components, custom directives, pipes |
+| Features/Attributes | Attribute List, Card, Add and Edit components, models and feature-specific services |
+
+#### 3. What happens if CoreModule is imported inside a lazy-loaded module?
+
+In the traditional NgModule architecture, a lazy-loaded module gets its own child injector. Importing CoreModule inside it can create duplicate instances of services intended to be singletons.
+
+This may lead to unexpected behavior, such as multiple service instances or duplicate interceptor registrations.
+
+Therefore, CoreModule should conventionally be imported only once in the root AppModule.
+
+
+### 2. Set up routing:
+   • /attributes → Attribute List (default)
+   • /attributes/add → Add Attribute
+   • /attributes/:id/edit → Edit Attribute
+   • /dashboard → Dashboard placeholder
+   • Wildcard → PageNotFoundComponent
+   Implement lazy loading for AttributeModule. Verify via Network tab — take a screenshot showing the lazy-loaded chunk. Describe what you see.
+
+
+   ``` ts
+   import { Routes } from '@angular/router';
+
+import { AttributeListComponent } from './pages/attribute-list/attribute-list';
+import { AddAttributeComponent } from './pages/add-attribute/add-attribute';
+import { EditAttributeComponent } from './pages/edit-attribute/edit-attribute';
+
+export const ATTRIBUTE_ROUTES: Routes = [
+  {
+    path: '',
+    component: AttributeListComponent
+  },
+  {
+    path: 'add',
+    component: AddAttributeComponent
+  },
+  {
+    path: ':id/edit',
+    component: EditAttributeComponent
+  }
+];
+
+```
+
+``` ts
+
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  {
+    path: 'attributes',
+    loadChildren: () =>
+      import('./features/attributes/attribute.routes')
+        .then(m => m.ATTRIBUTE_ROUTES)
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./features/dashboard/dashboard')
+        .then(m => m.DashboardComponent)
+  },
+  {
+    path: '',
+    redirectTo: 'attributes',
+    pathMatch: 'full'
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./shared/components/page-not-found/page-not-found')
+        .then(m => m.PageNotFoundComponent)
+  }
+];
+
+```
+
+![Network tab Output](Screenshots/Assignment2/task2.png)
+
+
+### 3. Create an AuthGuard (CanActivate): check a hardcoded isLoggedIn flag in AuthService. If not logged in, redirect to a LoginComponent (simple form, no real backend — just sets the flag). Protect /add and /edit routes.

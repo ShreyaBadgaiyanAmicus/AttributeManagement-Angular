@@ -5,8 +5,9 @@ import {
   ViewContainerRef,
   OnChanges
 } from '@angular/core';
+import { IAttribute } from '../../features/attributes/models/attribute.model';
 
-import { IAttribute } from '../models/attribute.model';
+
 
 @Directive({
   selector: '[appFilterBy]',

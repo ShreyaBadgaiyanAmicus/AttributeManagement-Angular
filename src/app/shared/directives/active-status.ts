@@ -1,5 +1,6 @@
 import { Directive, ElementRef, Input, OnChanges, Renderer2 } from '@angular/core';
-import { IAttribute } from '../models/attribute.model';
+import { IAttribute } from '../../features/attributes/models/attribute.model';
+
 
 @Directive({
   selector: '[appActiveStatus]',
