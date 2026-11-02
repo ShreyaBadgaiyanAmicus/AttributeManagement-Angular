@@ -1086,3 +1086,98 @@ export const routes: Routes = [
 
 
 ### 3. Create an AuthGuard (CanActivate): check a hardcoded isLoggedIn flag in AuthService. If not logged in, redirect to a LoginComponent (simple form, no real backend — just sets the flag). Protect /add and /edit routes.
+
+auth.guard.ts
+
+```
+import { Injectable } from '@angular/core';
+import {
+  CanActivate,
+  Router,
+  UrlTree,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot
+} from '@angular/router';
+
+import { AuthService } from '../services/auth.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean | UrlTree {
+
+    if (this.authService.isLoggedIn) {
+      return true;
+    }
+
+    return this.router.createUrlTree(
+      ['/login'],
+      {
+        queryParams: {
+          returnUrl: state.url
+        }
+      }
+    );
+  }
+}
+```
+![Auth Guard](Screenshots/Assignment2/task3.png)
+
+
+### 4. Create an UnsavedChangesGuard (CanDeactivate) for EditAttributeComponent. Must integrate with the dirty-check from Assignment 1 — if form is dirty, show a confirm dialog before navigating away.
+
+``` ts
+import { Injectable } from '@angular/core';
+import {
+  CanDeactivate
+} from '@angular/router';
+
+import {
+  EditAttributeComponent
+} from '../../features/attributes/pages/edit-attribute/edit-attribute';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UnsavedChangesGuard
+  implements CanDeactivate<EditAttributeComponent> {
+
+  canDeactivate(
+    component: EditAttributeComponent
+  ): boolean {
+
+    if (!component.hasUnsavedChanges) {
+      return true;
+    }
+
+    return window.confirm(
+      'You have unsaved changes. Are you sure you want to leave?'
+    );
+  }
+}
+```
+
+``` ts
+ {
+    path: ':id/edit',
+    component: EditAttributeComponent,
+    canActivate: [AuthGuard],
+    canDeactivate: [UnsavedChangesGuard]
+  }
+```
+
+![Unsaved changes Guard](Screenshots/Assignment2/task4.png)
+
+
+### 5. Create an AttributeResolver that pre-fetches attribute data before EditAttributeComponent loads. If the ID doesn't exist, redirect to /attributes with an error message via a ToastService you build from scratch (no third-party library).
+

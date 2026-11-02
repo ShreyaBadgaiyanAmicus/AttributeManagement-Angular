@@ -19,6 +19,12 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+  path: 'login',
+  loadComponent: () =>
+    import('./features/auth/login/login')
+      .then(m => m.LoginComponent)
+},
+  {
     path: '**',
     loadComponent: () =>
       import('./shared/components/page-not-found/page-not-found')
