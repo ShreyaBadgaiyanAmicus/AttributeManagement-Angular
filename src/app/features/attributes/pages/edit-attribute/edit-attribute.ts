@@ -3,15 +3,14 @@ import { AsyncPipe } from '@angular/common';
 
 import {
   Component,
-  EventEmitter,
   Input,
-  Output,
   OnInit,
   DestroyRef,
   inject
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
@@ -19,8 +18,11 @@ import {
   ICustomerLocation
 } from '../../models/attribute.model';
 
+import { AttributeService } from '../../services/attribute';
 import { LookupService } from '../../services/lookup';
+
 import { StoreService } from '../../../../core/services/store';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-edit-attribute',
@@ -33,13 +35,14 @@ import { StoreService } from '../../../../core/services/store';
   styleUrl: './edit-attribute.css'
 })
 export class EditAttributeComponent implements OnInit {
-  @Input({ required: true }) attribute!: IAttribute;
 
-  @Output() save = new EventEmitter<IAttribute>();
-  @Output() cancel = new EventEmitter<void>();
+  @Input({ required: true }) attribute!: IAttribute;
 
   private destroyRef = inject(DestroyRef);
   private store = inject(StoreService);
+  private router = inject(Router);
+  private attributeService = inject(AttributeService);
+  private toastService = inject(ToastService);
 
   lookups$ = this.store.lookups$;
 
@@ -139,34 +142,50 @@ export class EditAttributeComponent implements OnInit {
     );
 
     if (!selectedBusinessUnit || !selectedLocation || !selectedCompany) {
+      this.toastService.showError(
+        'Please select valid Business Unit, Customer Location and Company.'
+      );
       return;
     }
 
-    this.editedAttribute.businessUnitName =
-      selectedBusinessUnit.businessName;
+    const savedAttribute: IAttribute = {
+      ...this.editedAttribute,
+      attributeName: this.editedAttribute.attributeName.trim(),
+      businessUnitName: selectedBusinessUnit.businessName,
+      customerLocationName: selectedLocation.customerLocationName,
+      companyName: selectedCompany.companyName,
+      updatedOn: new Date(),
+      updatedBy: 'Current User'
+    };
 
-    this.editedAttribute.customerLocationName =
-      selectedLocation.customerLocationName;
+    this.attributeService.updateAttribute(
+      savedAttribute.attributeId,
+      savedAttribute
+    )
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: updatedAttribute => {
+        // Update the original copy only after a successful save.
+        this.originalAttribute = { ...updatedAttribute };
+        this.editedAttribute = { ...updatedAttribute };
 
-    this.editedAttribute.companyName =
-      selectedCompany.companyName;
+        this.toastService.showSuccess(
+          'Attribute updated successfully!'
+        );
 
-    const savedAttribute = { ...this.editedAttribute };
+        this.router.navigate(['/attributes']);
+      },
+      error: error => {
+        console.error('Failed to update attribute:', error);
 
-    this.save.emit(savedAttribute);
+        this.toastService.showError(
+          'Failed to update attribute. Please try again.'
+        );
+      }
+    });
   }
 
   onCancel(): void {
-    if (this.hasUnsavedChanges) {
-      const leave = confirm(
-        'You have unsaved changes. Are you sure you want to leave?'
-      );
-
-      if (!leave) {
-        return;
-      }
-    }
-
-    this.cancel.emit();
+    this.router.navigate(['/attributes']);
   }
 }

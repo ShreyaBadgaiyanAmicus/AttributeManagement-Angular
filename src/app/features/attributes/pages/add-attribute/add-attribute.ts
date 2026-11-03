@@ -3,12 +3,12 @@ import { AsyncPipe } from '@angular/common';
 
 import {
   Component,
-  EventEmitter,
-  Output,
   OnInit,
   DestroyRef,
   inject
 } from '@angular/core';
+
+import { Router } from '@angular/router';
 
 import {
   FormControl,
@@ -20,14 +20,18 @@ import {
 } from '@angular/forms';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 
 import {
   IAttribute,
   ICustomerLocation
 } from '../../models/attribute.model';
 
+import { AttributeService } from '../../services/attribute';
 import { LookupService } from '../../services/lookup';
+
 import { StoreService } from '../../../../core/services/store';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-add-attribute',
@@ -41,16 +45,14 @@ import { StoreService } from '../../../../core/services/store';
 })
 export class AddAttributeComponent implements OnInit {
 
-  @Output() back = new EventEmitter<void>();
-  @Output() attributeAdded = new EventEmitter<IAttribute>();
-
   private destroyRef = inject(DestroyRef);
   private store = inject(StoreService);
+  private router = inject(Router);
+  private attributeService = inject(AttributeService);
+  private toastService = inject(ToastService);
 
-  // Observable containing centralized lookup data
   lookups$ = this.store.lookups$;
 
-  // Locations filtered according to selected Business Unit
   customerLocations: ICustomerLocation[] = [];
 
   submitted = false;
@@ -83,7 +85,6 @@ export class AddAttributeComponent implements OnInit {
 
   ngOnInit(): void {
 
-    // Subscribe to centralized lookup state
     this.lookups$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(lookups => {
@@ -98,29 +99,39 @@ export class AddAttributeComponent implements OnInit {
             );
       });
 
-    // Fetch only lookup data that is not already available
     const lookups = this.store.getState().lookups;
 
     if (lookups.businessUnits.length === 0) {
-      this.lookupService.getBusinessUnits().subscribe({
-        error: error =>
-          console.error('Failed to load business units:', error)
-      });
+      this.lookupService.getBusinessUnits()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: error =>
+            console.error('Failed to load business units:', error)
+        });
     }
 
     if (lookups.customerLocations.length === 0) {
-      this.lookupService.getCustomerLocations().subscribe({
-        error: error =>
-          console.error('Failed to load customer locations:', error)
-      });
+      this.lookupService.getCustomerLocations()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: error =>
+            console.error('Failed to load customer locations:', error)
+        });
     }
 
     if (lookups.companies.length === 0) {
-      this.lookupService.getCompanies().subscribe({
-        error: error =>
-          console.error('Failed to load companies:', error)
-      });
+      this.lookupService.getCompanies()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: error =>
+            console.error('Failed to load companies:', error)
+        });
     }
+  }
+
+  // Navigate back to Attribute List
+  onCancel(): void {
+    this.router.navigate(['/attributes']);
   }
 
   noSpecialCharacters(control: AbstractControl): ValidationErrors | null {
@@ -146,7 +157,6 @@ export class AddAttributeComponent implements OnInit {
       return;
     }
 
-    // Filter locations from centralized Store
     const allLocations = this.store.getState().lookups.customerLocations;
 
     this.customerLocations = allLocations.filter(
@@ -180,6 +190,9 @@ export class AddAttributeComponent implements OnInit {
     );
 
     if (!selectedBusinessUnit || !selectedLocation || !selectedCompany) {
+      this.toastService.showError(
+        'Please select valid Business Unit, Customer Location and Company.'
+      );
       return;
     }
 
@@ -199,17 +212,33 @@ export class AddAttributeComponent implements OnInit {
       updatedBy: null
     };
 
-    this.attributeAdded.emit(newAttribute);
+    this.attributeService.getAttributes().pipe(
+      switchMap(attributes => {
+        const nextId = attributes.length > 0
+          ? Math.max(...attributes.map(a => a.attributeId)) + 1
+          : 1;
 
-    this.attributeForm.reset({
-      AttributeName: '',
-      BusinessUnitId: null,
-      CustomerLocationId: null,
-      CompanyId: null,
-      IsActive: true
+        return this.attributeService.addAttribute({
+          ...newAttribute,
+          attributeId: nextId
+        });
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.toastService.showSuccess(
+          'Attribute added successfully!'
+        );
+
+        this.router.navigate(['/attributes']);
+      },
+      error: error => {
+        console.error('Failed to add attribute:', error);
+
+        this.toastService.showError(
+          'Failed to add attribute. Please try again.'
+        );
+      }
     });
-
-    this.customerLocations = [];
-    this.submitted = false;
   }
 }

@@ -2,13 +2,13 @@
 import {
   Component,
   ChangeDetectorRef,
-  OnInit,
   DestroyRef,
   inject
 } from '@angular/core';
 
 import { DatePipe, AsyncPipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
@@ -18,17 +18,13 @@ import {
   tap,
   catchError,
   startWith,
-  of,
-  interval
+  of
 } from 'rxjs';
 
 import { AttributeService } from '../../services/attribute';
 import { IAttribute } from '../../models/attribute.model';
 
 import { StoreService } from '../../../../core/services/store';
-
-import { AddAttributeComponent } from '../add-attribute/add-attribute';
-import { EditAttributeComponent } from '../edit-attribute/edit-attribute';
 import { AttributeCardComponent } from '../../components/attribute-card/attribute-card';
 
 import { ActiveStatus } from '../../../../shared/directives/active-status';
@@ -45,17 +41,16 @@ import { ToastService } from '../../../../core/services/toast.service';
     ReactiveFormsModule,
     AttributeCardComponent,
     ActiveStatus,
-    RelativeTimePipe,
-    AddAttributeComponent,
-    EditAttributeComponent
+    RelativeTimePipe
   ],
   templateUrl: './attribute-list.html',
   styleUrl: './attribute-list.css'
 })
-export class AttributeListComponent implements OnInit {
+export class AttributeListComponent {
 
   private destroyRef = inject(DestroyRef);
   private store = inject(StoreService);
+  private router = inject(Router);
 
   // Observable from centralized Store
   attributes$ = this.store.attributes$;
@@ -65,8 +60,6 @@ export class AttributeListComponent implements OnInit {
   searchControl = new FormControl('', { nonNullable: true });
   isSearching = false;
 
-  showAddAttribute = false;
-  selectedAttribute: IAttribute | null = null;
   successMessage = '';
 
   constructor(
@@ -75,15 +68,6 @@ export class AttributeListComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.setupSearch();
-  }
-
-  ngOnInit(): void {
-    // Temporary subscription for Bug A demonstration.
-    interval(2000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(count => {
-        console.log('AttributeList subscription:', count);
-      });
   }
 
   setupSearch(): void {
@@ -125,89 +109,20 @@ export class AttributeListComponent implements OnInit {
     this.viewMode = mode;
   }
 
-  // Open Add Attribute form
+  // Navigate to Add Attribute route
   openAddAttribute(): void {
     this.successMessage = '';
-    this.showAddAttribute = true;
-    this.selectedAttribute = null;
+    this.router.navigate(['/attributes/add']);
   }
 
-  // Return to Attribute List
-  backToAttributeList(): void {
-    this.showAddAttribute = false;
-  }
-
-  // Add a new attribute
-  addAttribute(newAttribute: IAttribute): void {
-    const currentAttributes = this.store.getState().attributes;
-
-    const nextId = currentAttributes.length > 0
-      ? Math.max(
-          ...currentAttributes.map(attribute => attribute.attributeId)
-        ) + 1
-      : 1;
-
-    const attributeWithId: IAttribute = {
-      ...newAttribute,
-      attributeId: nextId
-    };
-
-    this.attributeService.addAttribute(attributeWithId).subscribe({
-      next: savedAttribute => {
-        // AttributeService already updates the Store.
-
-        this.showAddAttribute = false;
-
-        this.successMessage =
-          `"${savedAttribute.attributeName}" added successfully!`;
-
-        this.toastService.showSuccess(this.successMessage);
-      },
-      error: error => {
-        console.error('Failed to add attribute:', error);
-
-        this.toastService.showError(
-          'Unable to add attribute. Please try again.'
-        );
-      }
-    });
-  }
-
-  // Open Edit Attribute form
+  // Navigate to Edit Attribute route
   openEditAttribute(attribute: IAttribute): void {
     this.successMessage = '';
-    this.showAddAttribute = false;
-    this.selectedAttribute = { ...attribute };
-  }
 
-  // Save edited attribute
-  saveEditedAttribute(updatedAttribute: IAttribute): void {
-    this.attributeService.updateAttribute(
-      updatedAttribute.attributeId,
-      updatedAttribute
-    ).subscribe({
-      next: savedAttribute => {
-        // AttributeService already updates the Store.
-
-        this.selectedAttribute = null;
-
-        this.successMessage =
-          `"${savedAttribute.attributeName}" updated successfully!`;
-
-        this.toastService.showSuccess(this.successMessage);
-      },
-      error: error => {
-        console.error('Failed to update attribute:', error);
-
-        this.toastService.showError(
-          'Unable to update attribute. Please try again.'
-        );
-      }
-    });
-  }
-
-  // Cancel Edit
-  cancelEditAttribute(): void {
-    this.selectedAttribute = null;
+    this.router.navigate([
+      '/attributes',
+      attribute.attributeId,
+      'edit'
+    ]);
   }
 }

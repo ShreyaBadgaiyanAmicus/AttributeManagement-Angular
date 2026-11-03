@@ -1,29 +1,52 @@
-<div class="login-container">
-  <h2>Login</h2>
+<div class="login-page">
+  <div class="login-card">
 
-  <form (ngSubmit)="login()">
-    <div>
-      <label for="username">Username</label>
-      <input
-        id="username"
-        type="text"
-        name="username"
-        [(ngModel)]="username"
-        required
-      />
+    <div class="login-header">
+      
+      <h1>Welcome Back</h1>
+      <p>Sign in to your Attribute Management account</p>
     </div>
 
-    <div>
-      <label for="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        name="password"
-        [(ngModel)]="password"
-        required
-      />
+    <form (ngSubmit)="login()">
+
+      <div class="form-group">
+        <label for="username">Username</label>
+
+        <input
+          id="username"
+          type="text"
+          name="username"
+          [(ngModel)]="username"
+          placeholder="Enter your username"
+          autocomplete="username"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <button type="submit" class="login-button">
+        Sign In
+        <span>→</span>
+      </button>
+
+    </form>
+
+    <div class="login-footer">
+      <p>Attribute Management System</p>
     </div>
 
-    <button type="submit">Login</button>
-  </form>
+  </div>
 </div>
