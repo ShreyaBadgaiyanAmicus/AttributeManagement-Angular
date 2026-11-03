@@ -1969,3 +1969,52 @@ export class StoreService {
   }
 }
 ```
+
+
+## Why Immutability Matters
+
+Immutability means creating new objects or arrays instead of directly modifying existing state.
+
+### Example
+
+```ts
+// Immutable update
+this.updateState({
+  ...this.getState(),
+  attributes: [...this.getState().attributes, newAttribute]
+});
+
+// Mutable update (Avoid)
+this.getState().attributes.push(newAttribute);
+```
+
+### What Breaks If We Mutate?
+
+- **Change Detection:** Reference-based checks may not detect changes.
+- **UI Updates:** Components may display stale data.
+- **Debugging:** Previous state cannot be reliably compared.
+- **Side Effects:** Other components sharing the same reference may be affected.
+
+**Conclusion:** Immutability creates predictable state updates, improves change detection, and makes debugging easier.
+
+### 14. Create a LoaderComponent: Show a global loading spinner when any HTTP request is in flight. Must handle overlapping requests (spinner disappears only when ALL requests complete). Use the interceptor to manage the count.
+
+``` ts
+
+import { Component, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { StoreService } from '../../../core/services/store';
+
+@Component({
+  selector: 'app-loader',
+  standalone: true,
+  imports: [AsyncPipe],
+  templateUrl: './loader.html',
+  styleUrl: './loader.css'
+})
+export class LoaderComponent {
+  private store = inject(StoreService);
+
+  isLoading$ = this.store.isLoading$;
+}
+```
