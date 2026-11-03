@@ -54,9 +54,9 @@
         >
           <option [ngValue]="null">Select a business unit</option>
 
-          @for (unit of businessUnits; track unit.BusinessId) {
-            <option [ngValue]="unit.BusinessId">
-              {{ unit.BusinessName }}
+          @for (unit of businessUnits; track unit.businessId) {
+            <option [ngValue]="unit.businessId">
+              {{ unit.businessName }}
             </option>
           }
         </select>
@@ -80,9 +80,9 @@
         >
           <option [ngValue]="null">Select a customer location</option>
 
-          @for (location of customerLocations; track location.CustomerLocationId) {
-            <option [ngValue]="location.CustomerLocationId">
-              {{ location.CustomerLocationName }}
+          @for (location of customerLocations; track location.customerLocationId) {
+            <option [ngValue]="location.customerLocationId">
+              {{ location.customerLocationName }}
             </option>
           }
         </select>
@@ -104,9 +104,9 @@
         >
           <option [ngValue]="null">Select a company</option>
 
-          @for (company of companies; track company.CompanyId) {
-            <option [ngValue]="company.CompanyId">
-              {{ company.CompanyName }}
+          @for (company of companies; track company.companyId) {
+            <option [ngValue]="company.companyId">
+              {{ company.companyName }}
             </option>
           }
         </select>
@@ -117,7 +117,6 @@
         }
       </div>
 
-
       <div class="checkbox-field">
         <input
           id="isActive"
@@ -126,7 +125,6 @@
         />
         <label for="isActive">Active</label>
       </div>
-
 
       <div class="form-actions">
         <button
@@ -139,7 +137,6 @@
           Add Attribute
         </button>
       </div>
-
 
       @if (successMessage) {
         <p class="success-message">{{ successMessage }}</p>

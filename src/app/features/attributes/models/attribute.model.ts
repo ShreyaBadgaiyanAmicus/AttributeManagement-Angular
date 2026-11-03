@@ -1,27 +1,30 @@
 export interface IAttribute {
-    AttributeId: number;
-    AttributeName: string;
-    BusinessUnitName: string;
-    CustomerLocationName: string;
-    CompanyName: string;
-    IsActive: boolean;
-    CreatedOn: Date;
-    CreatedBy: string;
-    UpdatedOn: Date|null;
-    UpdatedBy: string|null;
+  attributeId: number;
+  attributeName: string;
+  businessUnitId: number;
+  customerLocationId: number;
+  companyId: number;
+  businessUnitName: string;
+  customerLocationName: string;
+  companyName: string;
+  isActive: boolean;
+  createdOn: Date;
+  createdBy: string;
+  updatedOn: Date | null;
+  updatedBy: string | null;
 }
 
 export interface IBusinessUnit {
-    BusinessId:number;
-    BusinessName:string;
+  businessId: number;
+  businessName: string;
 }
 
 export interface ICustomerLocation {
-    CustomerLocationId:number;
-    CustomerLocationName:string;
+  customerLocationId: number;
+  customerLocationName: string;
 }
 
 export interface ICompany {
-    CompanyId:number;
-    CompanyName:string;
+  companyId: number;
+  companyName: string;
 }

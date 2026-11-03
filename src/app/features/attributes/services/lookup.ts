@@ -1,58 +1,77 @@
-import { Injectable } from '@angular/core';
+
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+
 import {
   IBusinessUnit,
   ICustomerLocation,
   ICompany
 } from '../models/attribute.model';
 
+import { BusinessUnitDTO } from '../dtos/business-unit.dto';
+import { CustomerLocationDTO } from '../dtos/customer-location.dto';
+import { CompanyDTO } from '../dtos/company.dto';
+import { environment } from '../../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class LookupService {
 
-  private businessUnits: IBusinessUnit[] = [
-    { BusinessId: 1, BusinessName: 'Engineering' },
-    { BusinessId: 2, BusinessName: 'Finance' },
-    { BusinessId: 3, BusinessName: 'Human Resources' },
-    { BusinessId: 4, BusinessName: 'Operations' }
-  ];
+  private http = inject(HttpClient);
 
-  private customerLocations: (ICustomerLocation & {
-    BusinessId: number;
-  })[] = [
-    { CustomerLocationId: 1, CustomerLocationName: 'Delhi', BusinessId: 1 },
-    { CustomerLocationId: 2, CustomerLocationName: 'Bengaluru', BusinessId: 1 },
-    { CustomerLocationId: 3, CustomerLocationName: 'Mumbai', BusinessId: 2 },
-    { CustomerLocationId: 4, CustomerLocationName: 'Pune', BusinessId: 2 },
-    { CustomerLocationId: 5, CustomerLocationName: 'Hyderabad', BusinessId: 3 },
-    { CustomerLocationId: 6, CustomerLocationName: 'Chennai', BusinessId: 3 },
-    { CustomerLocationId: 7, CustomerLocationName: 'Gurugram', BusinessId: 4 },
-    { CustomerLocationId: 8, CustomerLocationName: 'Noida', BusinessId: 4 }
-  ];
+  private apiUrl = environment.apiBaseUrl;
 
-  private companies: ICompany[] = [
-    { CompanyId: 1, CompanyName: 'Amicus' },
-    { CompanyId: 2, CompanyName: 'Contoso' },
-    { CompanyId: 3, CompanyName: 'Fabrikam' }
-  ];
-
-  getBusinessUnits(): IBusinessUnit[] {
-    return this.businessUnits;
-  }
-
-  getCustomerLocations(): ICustomerLocation[] {
-    return this.customerLocations;
-  }
-
-  getLocationsByBusinessUnit(
-    businessId: number
-  ): ICustomerLocation[] {
-    return this.customerLocations.filter(
-      location => location.BusinessId === businessId
+  // Get all business units
+  getBusinessUnits(): Observable<IBusinessUnit[]> {
+    return this.http.get<BusinessUnitDTO[]>(
+      `${this.apiUrl}/businessUnits`
+    ).pipe(
+      map(dtos => dtos.map(dto => ({
+        businessId: dto.business_id,
+        businessName: dto.business_name
+      })))
     );
   }
 
-  getCompanies(): ICompany[] {
-    return this.companies;
+  // Get all customer locations
+  getCustomerLocations(): Observable<
+    (ICustomerLocation & { businessUnitId: number })[]
+  > {
+    return this.http.get<CustomerLocationDTO[]>(
+      `${this.apiUrl}/customerLocations`
+    ).pipe(
+      map(dtos => dtos.map(dto => ({
+        customerLocationId: dto.customer_location_id,
+        customerLocationName: dto.customer_location_name,
+        businessUnitId: dto.business_unit_id
+      })))
+    );
+  }
+
+  // Get locations belonging to a selected business unit
+  getLocationsByBusinessUnit(
+    businessId: number
+  ): Observable<ICustomerLocation[]> {
+    return this.getCustomerLocations().pipe(
+      map(locations =>
+        locations.filter(
+          location => location.businessUnitId === businessId
+        )
+      )
+    );
+  }
+
+  // Get all companies
+  getCompanies(): Observable<ICompany[]> {
+    return this.http.get<CompanyDTO[]>(
+      `${this.apiUrl}/companies`
+    ).pipe(
+      map(dtos => dtos.map(dto => ({
+        companyId: dto.company_id,
+        companyName: dto.company_name
+      })))
+    );
   }
 }

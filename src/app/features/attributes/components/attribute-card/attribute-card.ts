@@ -24,7 +24,7 @@ export class AttributeCardComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['attribute']) {
       console.log(
         'ngOnChanges fired for:',
-        this.attribute.AttributeName
+        this.attribute.attributeName
       );
     }
   }
@@ -32,14 +32,14 @@ export class AttributeCardComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     console.log(
       'ngOnInit fired for:',
-      this.attribute.AttributeName
+      this.attribute.attributeName
     );
   }
 
   ngOnDestroy(): void {
     console.log(
       'ngOnDestroy fired for:',
-      this.attribute.AttributeName
+      this.attribute.attributeName
     );
   }
 }

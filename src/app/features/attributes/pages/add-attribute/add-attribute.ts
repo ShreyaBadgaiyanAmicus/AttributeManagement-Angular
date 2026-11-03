@@ -1,3 +1,4 @@
+
 import { Component, EventEmitter, Output } from '@angular/core';
 import {
   FormControl,
@@ -7,12 +8,14 @@ import {
   AbstractControl,
   ValidationErrors,
 } from '@angular/forms';
+
 import {
   IAttribute,
   IBusinessUnit,
   ICustomerLocation,
   ICompany,
 } from '../../models/attribute.model';
+
 import { LookupService } from '../../services/lookup';
 
 @Component({
@@ -35,7 +38,11 @@ export class AddAttributeComponent {
 
   attributeForm = new FormGroup({
     AttributeName: new FormControl('', {
-      validators: [Validators.required, Validators.minLength(3), this.noSpecialCharacters],
+      validators: [
+        Validators.required,
+        Validators.minLength(3),
+        this.noSpecialCharacters,
+      ],
     }),
     BusinessUnitId: new FormControl<number | null>(null, Validators.required),
     CustomerLocationId: new FormControl<number | null>(null, Validators.required),
@@ -44,8 +51,17 @@ export class AddAttributeComponent {
   });
 
   constructor(private lookupService: LookupService) {
-    this.businessUnits = this.lookupService.getBusinessUnits();
-    this.companies = this.lookupService.getCompanies();
+    // Fetch business units from API
+    this.lookupService.getBusinessUnits().subscribe({
+      next: units => this.businessUnits = units,
+      error: error => console.error('Failed to load business units:', error)
+    });
+
+    // Fetch companies from API
+    this.lookupService.getCompanies().subscribe({
+      next: companies => this.companies = companies,
+      error: error => console.error('Failed to load companies:', error)
+    });
   }
 
   noSpecialCharacters(control: AbstractControl): ValidationErrors | null {
@@ -55,16 +71,26 @@ export class AddAttributeComponent {
       return null;
     }
 
-    return /^[a-zA-Z0-9 -]+$/.test(value) ? null : { specialCharacters: true };
+    return /^[a-zA-Z0-9 -]+$/.test(value)
+      ? null
+      : { specialCharacters: true };
   }
 
   onBusinessUnitChange(): void {
     const businessId = this.attributeForm.controls.BusinessUnitId.value;
 
-    this.customerLocations =
-      businessId === null ? [] : this.lookupService.getLocationsByBusinessUnit(businessId);
-
+    this.customerLocations = [];
     this.attributeForm.controls.CustomerLocationId.reset(null);
+
+    if (businessId === null) {
+      return;
+    }
+
+    // Fetch locations for selected business unit
+    this.lookupService.getLocationsByBusinessUnit(businessId).subscribe({
+      next: locations => this.customerLocations = locations,
+      error: error => console.error('Failed to load customer locations:', error)
+    });
   }
 
   onSubmit(): void {
@@ -79,15 +105,15 @@ export class AddAttributeComponent {
     const formValue = this.attributeForm.getRawValue();
 
     const selectedBusinessUnit = this.businessUnits.find(
-      (unit) => unit.BusinessId === formValue.BusinessUnitId,
+      unit => unit.businessId === formValue.BusinessUnitId
     );
 
     const selectedLocation = this.customerLocations.find(
-      (location) => location.CustomerLocationId === formValue.CustomerLocationId,
+      location => location.customerLocationId === formValue.CustomerLocationId
     );
 
     const selectedCompany = this.companies.find(
-      (company) => company.CompanyId === formValue.CompanyId,
+      company => company.companyId === formValue.CompanyId
     );
 
     if (!selectedBusinessUnit || !selectedLocation || !selectedCompany) {
@@ -95,20 +121,23 @@ export class AddAttributeComponent {
     }
 
     const newAttribute: IAttribute = {
-      AttributeId: 0,
-      AttributeName: formValue.AttributeName!.trim(),
-      BusinessUnitName: selectedBusinessUnit.BusinessName,
-      CustomerLocationName: selectedLocation.CustomerLocationName,
-      CompanyName: selectedCompany.CompanyName,
-      IsActive: formValue.IsActive,
-      CreatedOn: new Date(),
-      CreatedBy: 'Current User',
-      UpdatedOn: null,
-      UpdatedBy: null,
+      attributeId: 0,
+      attributeName: formValue.AttributeName!.trim(),
+      businessUnitId: selectedBusinessUnit.businessId,
+      customerLocationId: selectedLocation.customerLocationId,
+      companyId: selectedCompany.companyId,
+      businessUnitName: selectedBusinessUnit.businessName,
+      customerLocationName: selectedLocation.customerLocationName,
+      companyName: selectedCompany.companyName,
+      isActive: formValue.IsActive,
+      createdOn: new Date(),
+      createdBy: 'Current User',
+      updatedOn: null,
+      updatedBy: null,
     };
 
     this.attributeAdded.emit(newAttribute);
-    this.successMessage = 'Attribute added successfully!';
+
     this.attributeForm.reset({
       AttributeName: '',
       BusinessUnitId: null,
@@ -116,6 +145,7 @@ export class AddAttributeComponent {
       CompanyId: null,
       IsActive: true,
     });
+
     this.customerLocations = [];
     this.submitted = false;
   }

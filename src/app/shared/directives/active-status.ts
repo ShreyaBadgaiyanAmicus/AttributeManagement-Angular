@@ -22,10 +22,10 @@ export class ActiveStatus implements OnChanges {
     this.renderer.removeClass(element, 'active-badge');
     this.renderer.removeClass(element, 'inactive-badge');
 
-    if (attribute.IsActive) {
+    if (attribute.isActive) {
       this.renderer.addClass(element, 'active-badge');
 
-      const createdDate = new Date(attribute.CreatedOn);
+      const createdDate = new Date(attribute.createdOn);
       this.renderer.setAttribute(
         element,
         'title',
@@ -34,8 +34,8 @@ export class ActiveStatus implements OnChanges {
     } else {
       this.renderer.addClass(element, 'inactive-badge');
 
-      const updatedDate = attribute.UpdatedOn
-        ? new Date(attribute.UpdatedOn)
+      const updatedDate = attribute.updatedOn
+        ? new Date(attribute.updatedOn)
         : null;
 
       const dateText = updatedDate

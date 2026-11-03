@@ -1,0 +1,260 @@
+{
+  "attributes": [
+    {
+      "attribute_id": 1,
+      "attribute_name": "Employee Code here",
+      "business_unit_id": 3,
+      "customer_location_id": 3,
+      "company_id": 3,
+      "business_unit_name": "Technology",
+      "customer_location_name": "Bengaluru",
+      "company_name": "GlobalWorks",
+      "is_active": true,
+      "created_on": "2026-01-10T00:00:00.000Z",
+      "created_by": "Shreya",
+      "updated_on": null,
+      "updated_by": null
+    },
+    {
+      "attribute_id": 2,
+      "attribute_name": "Cost Center",
+      "business_unit_id": 2,
+      "customer_location_id": 2,
+      "company_id": 1,
+      "business_unit_name": "Finance",
+      "customer_location_name": "Pune",
+      "company_name": "Amicus",
+      "is_active": true,
+      "created_on": "2026-02-15",
+      "created_by": "Rahul",
+      "updated_on": "2026-03-01",
+      "updated_by": "Priya"
+    },
+    {
+      "attribute_id": 3,
+      "attribute_name": "Project Code",
+      "business_unit_id": 3,
+      "customer_location_id": 3,
+      "company_id": 2,
+      "business_unit_name": "Technology",
+      "customer_location_name": "Bengaluru",
+      "company_name": "TechNova",
+      "is_active": true,
+      "created_on": "2026-03-05T00:00:00.000Z",
+      "created_by": "Amit",
+      "updated_on": null,
+      "updated_by": null
+    },
+    {
+      "attribute_id": 4,
+      "attribute_name": "Department",
+      "business_unit_id": 1,
+      "customer_location_id": 4,
+      "company_id": 2,
+      "business_unit_name": "Human Resources",
+      "customer_location_name": "Delhi",
+      "company_name": "TechNova",
+      "is_active": true,
+      "created_on": "2026-04-12",
+      "created_by": "Priya",
+      "updated_on": "2026-05-02",
+      "updated_by": "Shreya"
+    },
+    {
+      "attribute_id": 5,
+      "attribute_name": "Vendor Number",
+      "business_unit_id": 4,
+      "customer_location_id": 5,
+      "company_id": 3,
+      "business_unit_name": "Procurement",
+      "customer_location_name": "Hyderabad",
+      "company_name": "GlobalWorks",
+      "is_active": false,
+      "created_on": "2026-05-08",
+      "created_by": "Neha",
+      "updated_on": "2026-06-10",
+      "updated_by": "Rahul"
+    },
+    {
+      "attribute_id": 6,
+      "attribute_name": "Office Location",
+      "business_unit_id": 5,
+      "customer_location_id": 6,
+      "company_id": 3,
+      "business_unit_name": "Administration",
+      "customer_location_name": "Mumbai",
+      "company_name": "GlobalWorks",
+      "is_active": true,
+      "created_on": "2026-06-18",
+      "created_by": "Vikram",
+      "updated_on": null,
+      "updated_by": null
+    },
+    {
+      "attribute_id": 7,
+      "attribute_name": "Client Reference",
+      "business_unit_id": 6,
+      "customer_location_id": 7,
+      "company_id": 1,
+      "business_unit_name": "Sales",
+      "customer_location_name": "Chennai",
+      "company_name": "Amicus",
+      "is_active": false,
+      "created_on": "2026-07-04",
+      "created_by": "Ananya",
+      "updated_on": null,
+      "updated_by": null
+    },
+    {
+      "attribute_id": 8,
+      "attribute_name": "Asset Tag",
+      "business_unit_id": 3,
+      "customer_location_id": 8,
+      "company_id": 2,
+      "business_unit_name": "Technology",
+      "customer_location_name": "Pune",
+      "company_name": "TechNova",
+      "is_active": true,
+      "created_on": "2026-08-20",
+      "created_by": "Rahul",
+      "updated_on": "2026-09-01",
+      "updated_by": "Neha"
+    },
+    {
+      "attribute_id": 9,
+      "attribute_name": "Color",
+      "business_unit_id": 2,
+      "customer_location_id": 9,
+      "company_id": 4,
+      "business_unit_name": "Finance",
+      "customer_location_name": "Mumbai",
+      "company_name": "Contoso",
+      "is_active": true,
+      "created_on": "2026-11-03T09:02:27.690Z",
+      "created_by": "Current User",
+      "updated_on": null,
+      "updated_by": null
+    },
+    {
+      "attribute_id": 10,
+      "attribute_name": "Customer Type updated",
+      "business_unit_id": 2,
+      "customer_location_id": 3,
+      "company_id": 2,
+      "business_unit_name": "Finance",
+      "customer_location_name": "Mumbai",
+      "company_name": "Contoso",
+      "is_active": true,
+      "created_on": "2026-11-03T09:32:12.778Z",
+      "created_by": "Current User",
+      "updated_on": null,
+      "updated_by": null
+    },
+    {
+      "attribute_id": 11,
+      "attribute_name": "Colors",
+      "business_unit_id": 2,
+      "customer_location_id": 9,
+      "company_id": 3,
+      "business_unit_name": "Finance",
+      "customer_location_name": "Mumbai",
+      "company_name": "GlobalWorks",
+      "is_active": true,
+      "created_on": "2026-11-03T11:09:52.081Z",
+      "created_by": "Current User",
+      "updated_on": null,
+      "updated_by": null
+    }
+  ],
+  "businessUnits": [
+    {
+      "business_id": 1,
+      "business_name": "Human Resources"
+    },
+    {
+      "business_id": 2,
+      "business_name": "Finance"
+    },
+    {
+      "business_id": 3,
+      "business_name": "Technology"
+    },
+    {
+      "business_id": 4,
+      "business_name": "Procurement"
+    },
+    {
+      "business_id": 5,
+      "business_name": "Administration"
+    },
+    {
+      "business_id": 6,
+      "business_name": "Sales"
+    }
+  ],
+  "customerLocations": [
+    {
+      "customer_location_id": 1,
+      "customer_location_name": "Mumbai",
+      "business_unit_id": 1
+    },
+    {
+      "customer_location_id": 2,
+      "customer_location_name": "Pune",
+      "business_unit_id": 2
+    },
+    {
+      "customer_location_id": 3,
+      "customer_location_name": "Bengaluru",
+      "business_unit_id": 3
+    },
+    {
+      "customer_location_id": 4,
+      "customer_location_name": "Delhi",
+      "business_unit_id": 1
+    },
+    {
+      "customer_location_id": 5,
+      "customer_location_name": "Hyderabad",
+      "business_unit_id": 4
+    },
+    {
+      "customer_location_id": 6,
+      "customer_location_name": "Mumbai",
+      "business_unit_id": 5
+    },
+    {
+      "customer_location_id": 7,
+      "customer_location_name": "Chennai",
+      "business_unit_id": 6
+    },
+    {
+      "customer_location_id": 8,
+      "customer_location_name": "Pune",
+      "business_unit_id": 3
+    },
+    {
+      "customer_location_id": 9,
+      "customer_location_name": "Mumbai",
+      "business_unit_id": 2
+    }
+  ],
+  "companies": [
+    {
+      "company_id": 1,
+      "company_name": "Amicus"
+    },
+    {
+      "company_id": 2,
+      "company_name": "TechNova"
+    },
+    {
+      "company_id": 3,
+      "company_name": "GlobalWorks"
+    },
+    {
+      "company_id": 4,
+      "company_name": "Contoso"
+    }
+  ]
+}

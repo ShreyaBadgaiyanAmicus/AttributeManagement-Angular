@@ -6,6 +6,7 @@ import { EditAttributeComponent } from './pages/edit-attribute/edit-attribute';
 
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { UnsavedChangesGuard } from '../../core/guards/unsaved-changes.guard';
+import { AttributeResolver } from './resolvers/attribute.resolver';
 
 export const ATTRIBUTE_ROUTES: Routes = [
   {
@@ -18,9 +19,12 @@ export const ATTRIBUTE_ROUTES: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: ':id/edit',
-    component: EditAttributeComponent,
-    canActivate: [AuthGuard],
-    canDeactivate: [UnsavedChangesGuard]
+  path: ':id/edit',
+  component: EditAttributeComponent,
+  canActivate: [AuthGuard],
+  canDeactivate: [UnsavedChangesGuard],
+  resolve: {
+    attribute: AttributeResolver
   }
+}
 ];

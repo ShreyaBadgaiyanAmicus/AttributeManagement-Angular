@@ -28,8 +28,8 @@ export class FilterBy implements OnChanges {
     const term = this.appFilterByTerm.trim().toLowerCase();
 
     const matches =
-      this.appFilterBy.AttributeName.toLowerCase().includes(term) ||
-      this.appFilterBy.BusinessUnitName.toLowerCase().includes(term);
+      this.appFilterBy.attributeName.toLowerCase().includes(term) ||
+      this.appFilterBy.businessUnitName.toLowerCase().includes(term);
 
     if (matches) {
       this.viewContainer.createEmbeddedView(this.templateRef);

@@ -1,113 +1,63 @@
-import { Injectable } from '@angular/core';
+
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+
 import { IAttribute } from '../models/attribute.model';
+import { MappingService } from './mapping';
+import { environment } from '../../../../environments/environment';
+import { AttributeDTO } from '../dtos/attribute.dto';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AttributeService {
 
-  private attributes: IAttribute[] = [
-    {
-      AttributeId: 1,
-      AttributeName: 'Employee Code',
-      BusinessUnitName: 'Human Resources',
-      CustomerLocationName: 'Mumbai',
-      CompanyName: 'Amicus',
-      IsActive: true,
-      CreatedOn: new Date('2026-01-10'),
-      CreatedBy: 'Shreya',
-      UpdatedOn: null,
-      UpdatedBy: null
-    },
-    {
-      AttributeId: 2,
-      AttributeName: 'Cost Center',
-      BusinessUnitName: 'Finance',
-      CustomerLocationName: 'Pune',
-      CompanyName: 'Amicus',
-      IsActive: true,
-      CreatedOn: new Date('2026-02-15'),
-      CreatedBy: 'Rahul',
-      UpdatedOn: new Date('2026-03-01'),
-      UpdatedBy: 'Priya'
-    },
-    {
-      AttributeId: 3,
-      AttributeName: 'Project Code',
-      BusinessUnitName: 'Technology',
-      CustomerLocationName: 'Bengaluru',
-      CompanyName: 'TechNova',
-      IsActive: false,
-      CreatedOn: new Date('2026-03-05'),
-      CreatedBy: 'Amit',
-      UpdatedOn: null,
-      UpdatedBy: null
-    },
-    {
-      AttributeId: 4,
-      AttributeName: 'Department',
-      BusinessUnitName: 'Human Resources',
-      CustomerLocationName: 'Delhi',
-      CompanyName: 'TechNova',
-      IsActive: true,
-      CreatedOn: new Date('2026-04-12'),
-      CreatedBy: 'Priya',
-      UpdatedOn: new Date('2026-05-02'),
-      UpdatedBy: 'Shreya'
-    },
-    {
-      AttributeId: 5,
-      AttributeName: 'Vendor Number',
-      BusinessUnitName: 'Procurement',
-      CustomerLocationName: 'Hyderabad',
-      CompanyName: 'GlobalWorks',
-      IsActive: false,
-      CreatedOn: new Date('2026-05-08'),
-      CreatedBy: 'Neha',
-      UpdatedOn: new Date('2026-06-10'),
-      UpdatedBy: 'Rahul'
-    },
-    {
-      AttributeId: 6,
-      AttributeName: 'Office Location',
-      BusinessUnitName: 'Administration',
-      CustomerLocationName: 'Mumbai',
-      CompanyName: 'GlobalWorks',
-      IsActive: true,
-      CreatedOn: new Date('2026-06-18'),
-      CreatedBy: 'Vikram',
-      UpdatedOn: null,
-      UpdatedBy: null
-    },
-    {
-      AttributeId: 7,
-      AttributeName: 'Client Reference',
-      BusinessUnitName: 'Sales',
-      CustomerLocationName: 'Chennai',
-      CompanyName: 'Amicus',
-      IsActive: false,
-      CreatedOn: new Date('2026-07-04'),
-      CreatedBy: 'Ananya',
-      UpdatedOn: null,
-      UpdatedBy: null
-    },
-    {
-      AttributeId: 8,
-      AttributeName: 'Asset Tag',
-      BusinessUnitName: 'Technology',
-      CustomerLocationName: 'Pune',
-      CompanyName: 'TechNova',
-      IsActive: true,
-      CreatedOn: new Date('2026-08-20'),
-      CreatedBy: 'Rahul',
-      UpdatedOn: new Date('2026-09-01'),
-      UpdatedBy: 'Neha'
-    }
-  ];
+  private http = inject(HttpClient);
+  private mappingService = inject(MappingService);
 
-  getAttributes(): IAttribute[] {
-    return this.attributes;
+  private apiUrl = `${environment.apiBaseUrl}/attributes`;
+
+  // Get all attributes
+  getAttributes(): Observable<IAttribute[]> {
+    return this.http.get<AttributeDTO[]>(this.apiUrl).pipe(
+      map(dtos => dtos.map(dto => this.mappingService.toAttribute(dto)))
+    );
   }
 
+  // Get attribute by ID
+  getAttributeById(id: number): Observable<IAttribute> {
+    return this.http.get<AttributeDTO>(`${this.apiUrl}/${id}`).pipe(
+      map(dto => this.mappingService.toAttribute(dto))
+    );
+  }
 
+  // Add an attribute
+  addAttribute(attribute: IAttribute): Observable<IAttribute> {
+    const dto = this.mappingService.toDTO(attribute);
+
+    return this.http.post<AttributeDTO>(this.apiUrl, dto).pipe(
+      map(response => this.mappingService.toAttribute(response))
+    );
+  }
+
+  // Update an attribute
+  updateAttribute(
+    id: number,
+    attribute: IAttribute
+  ): Observable<IAttribute> {
+    const dto = this.mappingService.toDTO(attribute);
+
+    return this.http.put<AttributeDTO>(
+      `${this.apiUrl}/${id}`,
+      dto
+    ).pipe(
+      map(response => this.mappingService.toAttribute(response))
+    );
+  }
+
+  // Delete an attribute
+  deleteAttribute(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

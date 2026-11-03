@@ -1,3 +1,4 @@
+
 @if (showAddAttribute) {
   <app-add-attribute
     (back)="backToAttributeList()"
@@ -37,7 +38,6 @@
       />
     </div>
 
-
     <div class="view-toggle">
       <button
         type="button"
@@ -76,22 +76,22 @@
           </thead>
 
           <tbody>
-            @for (attribute of attributes; track attribute.AttributeId) {
+            @for (attribute of attributes; track attribute.attributeId) {
               <tr *appFilterBy="attribute; term: searchTerm">
-                <td>{{ attribute.AttributeId }}</td>
+                <td>{{ attribute.attributeId }}</td>
                 <td class="attribute-name">
-                  {{ attribute.AttributeName }}
+                  {{ attribute.attributeName }}
                 </td>
-                <td>{{ attribute.BusinessUnitName }}</td>
-                <td>{{ attribute.CustomerLocationName }}</td>
-                <td>{{ attribute.CompanyName }}</td>
+                <td>{{ attribute.businessUnitName }}</td>
+                <td>{{ attribute.customerLocationName }}</td>
+                <td>{{ attribute.companyName }}</td>
                 <td>
                   <span [appActiveStatus]="attribute">
-                    {{ attribute.IsActive ? 'Active' : 'Inactive' }}
+                    {{ attribute.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
-                <td>{{ attribute.CreatedBy }}</td>
-                <td>{{ attribute.CreatedOn | relativeTime }}</td>
+                <td>{{ attribute.createdBy }}</td>
+                <td>{{ attribute.createdOn | relativeTime }}</td>
                 <td>
                   <button
                     type="button"
@@ -114,8 +114,11 @@
       </div>
     } @else {
       <div class="card-grid">
-        @for (attribute of attributes; track attribute.AttributeId) {
-          <div *appFilterBy="attribute; term: searchTerm" class="attribute-card-wrapper">
+        @for (attribute of attributes; track attribute.attributeId) {
+          <div
+            *appFilterBy="attribute; term: searchTerm"
+            class="attribute-card-wrapper"
+          >
             <app-attribute-card [attribute]="attribute" />
 
             <button

@@ -1,3 +1,4 @@
+
 <div class="form-page">
   <div class="form-card">
     <div class="form-header">
@@ -20,13 +21,14 @@
     }
 
     <form #editForm="ngForm" (ngSubmit)="onSave()">
+
       <div class="form-field">
         <label for="attributeName">Attribute Name *</label>
         <input
           id="attributeName"
-          name="AttributeName"
+          name="attributeName"
           type="text"
-          [(ngModel)]="editedAttribute.AttributeName"
+          [(ngModel)]="editedAttribute.attributeName"
           required
           minlength="3"
           pattern="[a-zA-Z0-9 -]+"
@@ -52,46 +54,67 @@
       </div>
 
       <div class="form-field">
-        <label for="businessUnit">Business Unit</label>
-        <input
+        <label for="businessUnit">Business Unit *</label>
+        <select
           id="businessUnit"
-          name="BusinessUnitName"
-          type="text"
-          [(ngModel)]="editedAttribute.BusinessUnitName"
+          name="businessUnitId"
+          [(ngModel)]="editedAttribute.businessUnitId"
+          (ngModelChange)="onBusinessUnitChange($event)"
           required
-        />
+        >
+          <option [ngValue]="null">Select a business unit</option>
+
+          @for (unit of businessUnits; track unit.businessId) {
+            <option [ngValue]="unit.businessId">
+              {{ unit.businessName }}
+            </option>
+          }
+        </select>
       </div>
 
-
       <div class="form-field">
-        <label for="customerLocation">Customer Location</label>
-        <input
+        <label for="customerLocation">Customer Location *</label>
+        <select
           id="customerLocation"
-          name="CustomerLocationName"
-          type="text"
-          [(ngModel)]="editedAttribute.CustomerLocationName"
+          name="customerLocationId"
+          [(ngModel)]="editedAttribute.customerLocationId"
           required
-        />
+          [disabled]="customerLocations.length === 0"
+        >
+          <option [ngValue]="null">Select a customer location</option>
+
+          @for (location of customerLocations; track location.customerLocationId) {
+            <option [ngValue]="location.customerLocationId">
+              {{ location.customerLocationName }}
+            </option>
+          }
+        </select>
       </div>
 
       <div class="form-field">
-        <label for="company">Company</label>
-        <input
+        <label for="company">Company *</label>
+        <select
           id="company"
-          name="CompanyName"
-          type="text"
-          [(ngModel)]="editedAttribute.CompanyName"
+          name="companyId"
+          [(ngModel)]="editedAttribute.companyId"
           required
-        />
-      </div>
+        >
+          <option [ngValue]="null">Select a company</option>
 
+          @for (company of companies; track company.companyId) {
+            <option [ngValue]="company.companyId">
+              {{ company.companyName }}
+            </option>
+          }
+        </select>
+      </div>
 
       <div class="checkbox-field">
         <input
           id="isActive"
-          name="IsActive"
+          name="isActive"
           type="checkbox"
-          [(ngModel)]="editedAttribute.IsActive"
+          [(ngModel)]="editedAttribute.isActive"
         />
         <label for="isActive">Active</label>
       </div>

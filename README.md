@@ -1181,3 +1181,452 @@ export class UnsavedChangesGuard
 
 ### 5. Create an AttributeResolver that pre-fetches attribute data before EditAttributeComponent loads. If the ID doesn't exist, redirect to /attributes with an error message via a ToastService you build from scratch (no third-party library).
 
+``` ts
+import { Injectable, inject } from '@angular/core';
+import {
+  Resolve,
+  ActivatedRouteSnapshot,
+  Router,
+  RouterStateSnapshot,
+  RedirectCommand
+} from '@angular/router';
+
+import { IAttribute } from '../models/attribute.model';
+import { AttributeService } from '../services/attribute';
+import { ToastService } from '../../../core/services/toast.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AttributeResolver implements Resolve<IAttribute | RedirectCommand> {
+
+  private attributeService = inject(AttributeService);
+  private router = inject(Router);
+  private toastService = inject(ToastService);
+
+  resolve(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): IAttribute | RedirectCommand {
+
+    const id = Number(route.paramMap.get('id'));
+
+    const attribute = this.attributeService.getAttributeById(id);
+
+    if (!attribute) {
+      this.toastService.showError(
+        `Attribute with ID ${id} was not found.`
+      );
+
+      return new RedirectCommand(
+        this.router.createUrlTree(['/attributes'])
+      );
+    }
+
+    return attribute;
+  }
+}
+```
+
+![Toast message](Screenshots/Assignment2/task5.png)
+
+### 6. Set up json-server as a mock API. Configure environment.ts and environment.prod.ts with different API base URLs. No hardcoded URLs anywhere in services.
+
+
+### JSON Server Setup
+- Installed JSON Server as a development dependency.
+- Created `db.json` containing mock attribute records.
+- Configured the `api` script in package.json.
+- Started the mock API using `npm run api`.
+- API endpoint: `http://localhost:3000/attributes`.
+
+### Environment Configuration
+- Created `environment.ts` for development.
+- Created `environment.prod.ts` for production.
+- Configured Angular production file replacement in angular.json.
+- Development API URL: `http://localhost:3000`.
+- Production API URL: `https://api.example.com` (placeholder).
+
+### HTTP Configuration
+- Configured `provideHttpClient()` in app.config.ts.
+- Updated AttributeService to use Angular HttpClient.
+- Used environment.apiBaseUrl to construct API endpoints.
+- No hardcoded API base URLs in services.
+
+### API Operations
+- GET: Retrieve all attributes and retrieve an attribute by ID.
+- POST: Add a new attribute.
+- PUT: Update an existing attribute.
+
+### Testing
+- Verified that all 8 mock records load successfully.
+- Verified that newly added attributes persist in db.json.
+- Verified that updated attributes persist in db.json.
+- Confirmed that development API requests work successfully.
+
+``` ts
+export const environment = {
+  production: true,
+  apiBaseUrl: 'https://api.example.com'
+};
+```
+
+``` ts
+export const environment = {
+  production: false,
+  apiBaseUrl: 'http://localhost:3000'
+};
+```
+
+### 7. Create a DTO mapping layer:
+   • Define AttributeDTO with snake_case properties (attribute_id, attribute_name, business_unit_name, etc.) matching the API response format
+   • Your IAttribute interface stays camelCase
+   • Create a MappingService with toAttribute(dto) and toDTO(attribute) methods
+   • ALL API responses must pass through the mapper before reaching components. Comment: Why not use the API response directly in components?
+
+
+   ``` ts
+   export interface AttributeDTO {
+  attribute_id: number;
+  attribute_name: string;
+  business_unit_id: number;
+  customer_location_id: number;
+  company_id: number;
+  business_unit_name: string;
+  customer_location_name: string;
+  company_name: string;
+  is_active: boolean;
+  created_on: string;
+  created_by: string;
+  updated_on: string | null;
+  updated_by: string | null;
+}
+```
+
+``` ts
+
+import { Injectable } from '@angular/core';
+import { IAttribute, AttributeDTO } from '../models/attribute.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MappingService {
+
+  toAttribute(dto: AttributeDTO): IAttribute {
+    return {
+      attributeId: dto.attribute_id,
+      attributeName: dto.attribute_name,
+      businessUnitId: dto.business_unit_id,
+      customerLocationId: dto.customer_location_id,
+      companyId: dto.company_id,
+      businessUnitName: dto.business_unit_name,
+      customerLocationName: dto.customer_location_name,
+      companyName: dto.company_name,
+      isActive: dto.is_active,
+      createdOn: new Date(dto.created_on),
+      createdBy: dto.created_by,
+      updatedOn: dto.updated_on ? new Date(dto.updated_on) : null,
+      updatedBy: dto.updated_by
+    };
+  }
+
+  toDTO(attribute: IAttribute): AttributeDTO {
+    return {
+      attribute_id: attribute.attributeId,
+      attribute_name: attribute.attributeName,
+      business_unit_id: attribute.businessUnitId,
+      customer_location_id: attribute.customerLocationId,
+      company_id: attribute.companyId,
+      business_unit_name: attribute.businessUnitName,
+      customer_location_name: attribute.customerLocationName,
+      company_name: attribute.companyName,
+      is_active: attribute.isActive,
+      created_on: attribute.createdOn.toISOString(),
+      created_by: attribute.createdBy,
+      updated_on: attribute.updatedOn
+        ? attribute.updatedOn.toISOString()
+        : null,
+      updated_by: attribute.updatedBy
+    };
+  }
+}
+```
+
+### Why not use the API response directly in components?
+
+We should not use API responses directly in components because the API and frontend may follow different data formats. The API uses snake_case properties, while Angular uses camelCase properties.
+
+The MappingService converts API DTOs into application models and vice versa. This keeps components independent of the API structure, avoids repeated conversion logic, improves maintainability, and makes it easier to handle changes in the backend without modifying multiple components.
+
+
+### 8. Replace in-memory AttributeService data with real HttpClient calls (GET list, GET by ID, POST create, PUT update, DELETE). LookupService calls should also be from the API.
+
+attribute service
+
+``` ts
+
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+
+import { IAttribute } from '../models/attribute.model';
+import { MappingService } from './mapping';
+import { environment } from '../../../../environments/environment';
+import { AttributeDTO } from '../dtos/attribute.dto';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AttributeService {
+
+  private http = inject(HttpClient);
+  private mappingService = inject(MappingService);
+
+  private apiUrl = `${environment.apiBaseUrl}/attributes`;
+
+  // Get all attributes
+  getAttributes(): Observable<IAttribute[]> {
+    return this.http.get<AttributeDTO[]>(this.apiUrl).pipe(
+      map(dtos => dtos.map(dto => this.mappingService.toAttribute(dto)))
+    );
+  }
+
+  // Get attribute by ID
+  getAttributeById(id: number): Observable<IAttribute> {
+    return this.http.get<AttributeDTO>(`${this.apiUrl}/${id}`).pipe(
+      map(dto => this.mappingService.toAttribute(dto))
+    );
+  }
+
+  // Add an attribute
+  addAttribute(attribute: IAttribute): Observable<IAttribute> {
+    const dto = this.mappingService.toDTO(attribute);
+
+    return this.http.post<AttributeDTO>(this.apiUrl, dto).pipe(
+      map(response => this.mappingService.toAttribute(response))
+    );
+  }
+
+  // Update an attribute
+  updateAttribute(
+    id: number,
+    attribute: IAttribute
+  ): Observable<IAttribute> {
+    const dto = this.mappingService.toDTO(attribute);
+
+    return this.http.put<AttributeDTO>(
+      `${this.apiUrl}/${id}`,
+      dto
+    ).pipe(
+      map(response => this.mappingService.toAttribute(response))
+    );
+  }
+
+  // Delete an attribute
+  deleteAttribute(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+}
+```
+
+lookup service
+
+``` ts
+
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+
+import {
+  IBusinessUnit,
+  ICustomerLocation,
+  ICompany
+} from '../models/attribute.model';
+
+import { BusinessUnitDTO } from '../dtos/business-unit.dto';
+import { CustomerLocationDTO } from '../dtos/customer-location.dto';
+import { CompanyDTO } from '../dtos/company.dto';
+import { environment } from '../../../../environments/environment';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class LookupService {
+
+  private http = inject(HttpClient);
+
+  private apiUrl = environment.apiBaseUrl;
+
+  // Get all business units
+  getBusinessUnits(): Observable<IBusinessUnit[]> {
+    return this.http.get<BusinessUnitDTO[]>(
+      `${this.apiUrl}/businessUnits`
+    ).pipe(
+      map(dtos => dtos.map(dto => ({
+        businessId: dto.business_id,
+        businessName: dto.business_name
+      })))
+    );
+  }
+
+  // Get all customer locations
+  getCustomerLocations(): Observable<
+    (ICustomerLocation & { businessUnitId: number })[]
+  > {
+    return this.http.get<CustomerLocationDTO[]>(
+      `${this.apiUrl}/customerLocations`
+    ).pipe(
+      map(dtos => dtos.map(dto => ({
+        customerLocationId: dto.customer_location_id,
+        customerLocationName: dto.customer_location_name,
+        businessUnitId: dto.business_unit_id
+      })))
+    );
+  }
+
+  // Get locations belonging to a selected business unit
+  getLocationsByBusinessUnit(
+    businessId: number
+  ): Observable<ICustomerLocation[]> {
+    return this.getCustomerLocations().pipe(
+      map(locations =>
+        locations.filter(
+          location => location.businessUnitId === businessId
+        )
+      )
+    );
+  }
+
+  // Get all companies
+  getCompanies(): Observable<ICompany[]> {
+    return this.http.get<CompanyDTO[]>(
+      `${this.apiUrl}/companies`
+    ).pipe(
+      map(dtos => dtos.map(dto => ({
+        companyId: dto.company_id,
+        companyName: dto.company_name
+      })))
+    );
+  }
+}
+```
+
+### 9. Create an HttpInterceptor that:
+   • Adds X-Request-Id header (UUID) to every outgoing request
+   • Logs method, URL, and request duration to console
+   • Handles 401 → redirect to login, 500 → user-friendly error via ToastService
+   Comment: If you had 3 interceptors, in what order do they execute? How do you control the order?
+
+``` ts
+
+import { inject } from '@angular/core';
+import {
+  HttpInterceptorFn,
+  HttpErrorResponse
+} from '@angular/common/http';
+
+import { Router } from '@angular/router';
+import { catchError, finalize, throwError } from 'rxjs';
+
+import { ToastService } from '../services/toast.service';
+
+export const requestInterceptor: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+  const toastService = inject(ToastService);
+
+  // Generate a unique request ID
+  const requestId = crypto.randomUUID();
+
+  // Add the request ID header
+  const modifiedRequest = req.clone({
+    setHeaders: {
+      'X-Request-Id': requestId
+    }
+  });
+
+  // Record request start time
+  const startTime = performance.now();
+
+  return next(modifiedRequest).pipe(
+    catchError((error: HttpErrorResponse) => {
+
+      if (error.status === 401) {
+        router.navigate(['/login']);
+      }
+
+      if (error.status === 500) {
+        toastService.showError(
+          'Something went wrong on the server. Please try again later.'
+        );
+      }
+
+      return throwError(() => error);
+    }),
+
+    finalize(() => {
+      const duration = performance.now() - startTime;
+
+      console.log(
+        `[HTTP] ${req.method} ${req.urlWithParams} - ${duration.toFixed(2)} ms`
+      );
+    })
+  );
+};
+```
+
+#### How do multiple HTTP interceptors execute?
+
+Functional HTTP interceptors execute in the order in which they are registered in `withInterceptors()`.
+
+For example:
+
+withInterceptors([
+  authInterceptor,
+  requestInterceptor,
+  loggingInterceptor
+])
+
+Outgoing requests:
+1. authInterceptor
+2. requestInterceptor
+3. loggingInterceptor
+
+Incoming responses:
+1. loggingInterceptor
+2. requestInterceptor
+3. authInterceptor
+
+The execution order is controlled by the order of interceptors in the `withInterceptors()` array. Responses travel through the chain in reverse order.
+
+### 10. Implement retry logic for GET requests only (retry 2 times, 1-second delay). Do NOT retry POST/PUT/DELETE. Comment: Why not retry mutation requests?
+
+``` ts
+  const request$ = req.method === 'GET'
+    ? response$.pipe(
+        retry({
+          count: 2,
+          delay: 1000
+        })
+      )
+    : response$;
+```
+
+#### Why not retry mutation requests?
+
+Mutation requests modify data on the server.
+
+- POST may create duplicate records if a request succeeds on the server but its response is lost.
+- PUT may repeat an update operation.
+- DELETE may repeat a deletion request.
+
+For example, retrying a POST request could create duplicate records if the first request succeeded but the client did not receive its response.
+
+GET requests are generally safe to retry because they retrieve data without modifying server state.
+
+Mutation requests should not be retried blindly. They require appropriate idempotency handling or application-specific retry mechanisms.
+
+### 11. Refactor the search from Assignment 1: Replace the directive-based filtering with reactive search:
+   • Use FormControl.valueChanges piped through debounceTime(300), distinctUntilChanged, switchMap to call a filtered API endpoint
+   • Show a "Searching..." indicator during the debounce period
+   Comment: Why debounceTime? Why distinctUntilChanged? What breaks without switchMap if this were a real API call?
