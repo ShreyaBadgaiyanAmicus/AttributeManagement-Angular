@@ -326,3 +326,10 @@ tbody tr:last-child td {
   align-items: flex-start;
   gap: 12px;
 }
+
+.search-indicator {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--primary-color, #2563eb);
+}

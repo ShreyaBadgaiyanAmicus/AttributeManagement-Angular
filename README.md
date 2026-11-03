@@ -1630,3 +1630,190 @@ Mutation requests should not be retried blindly. They require appropriate idempo
    • Use FormControl.valueChanges piped through debounceTime(300), distinctUntilChanged, switchMap to call a filtered API endpoint
    • Show a "Searching..." indicator during the debounce period
    Comment: Why debounceTime? Why distinctUntilChanged? What breaks without switchMap if this were a real API call?
+
+
+``` ts
+  searchAttributes(searchTerm: string): Observable<IAttribute[]> {
+  return this.http.get<AttributeDTO[]>(this.apiUrl, {
+    params: { q: searchTerm }
+  }).pipe(
+    map(dtos => dtos.map(dto => this.mappingService.toAttribute(dto)))
+  );
+}
+```
+
+``` html
+<input
+        type="text"
+        placeholder="Search by attribute or business unit..."
+        [formControl]="searchControl"
+      />
+```
+
+
+
+#### Why use debounceTime?
+
+`debounceTime(300)` waits for 300 milliseconds after the user stops typing before emitting the search value.
+
+Without it, every keystroke would trigger an API request, resulting in unnecessary network traffic and server load.
+
+#### Why use distinctUntilChanged?
+
+`distinctUntilChanged()` prevents consecutive identical search values from triggering duplicate API requests.
+
+Without it, unchanged values could cause unnecessary API calls.
+
+#### What happens without switchMap?
+
+Without `switchMap()`, previous API requests would continue executing even when the user enters a new search term.
+
+This can cause:
+- Unnecessary API requests.
+- Multiple requests running simultaneously.
+- Older search results arriving after newer results.
+- Incorrect or outdated results being displayed.
+
+`switchMap()` unsubscribes from the previous search Observable and switches to the latest one. With Angular HttpClient, unsubscribing also aborts the in-progress HTTP request.
+
+
+### 12. Deliberately introduce these 3 bugs. Debug and fix them, documenting each in a BUGS.md:
+   Bug A: Subscribe inside ngOnInit without unsubscribing. Navigate away and back 5 times. Open console — document what you see and why.
+   Bug B: Use mergeMap instead of switchMap for search. Type quickly. Document the difference.
+   Bug C: Use Subject instead of BehaviorSubject in a service. Navigate to a component that subscribes after a value was emitted. Document why it's empty.
+
+
+
+### Bug A — Memory Leak Due to Unsubscribed Observable
+
+#### Problem
+An interval subscription was created inside `ngOnInit()` without unsubscribing.
+
+#### Observation
+After navigating away from Attribute List and returning multiple times, old interval subscriptions continued running.
+
+This caused multiple subscriptions to remain active and produce console logs.
+
+#### Cause
+Angular destroys a component when navigating away, but it does not automatically unsubscribe manually created RxJS subscriptions.
+
+#### Fix
+Used Angular's `takeUntilDestroyed()` operator with `DestroyRef`.
+
+```ts
+interval(2000)
+  .pipe(takeUntilDestroyed(this.destroyRef))
+  .subscribe(count => {
+    console.log('AttributeList subscription:', count);
+  });
+```
+
+### Bug B — Using `mergeMap` Instead of `switchMap` for Search
+
+#### Problem
+Replaced `switchMap()` with `mergeMap()` in the reactive search implementation.
+
+#### Observation
+When typing search terms quickly, multiple API requests can remain active simultaneously.
+
+Using network throttling helps demonstrate that requests may complete in a different order from the order in which they were sent.
+
+As a result, an older search response can arrive after a newer response and overwrite the latest search results.
+
+#### Cause
+`mergeMap()` subscribes to every inner Observable and allows multiple requests to execute concurrently.
+
+It does not cancel previous requests when a new search term is entered.
+
+#### Fix
+Replaced `mergeMap()` with `switchMap()`.
+
+```ts
+switchMap(searchTerm =>
+  this.attributeService.searchAttributes(searchTerm).pipe(
+    catchError(error => {
+      console.error('Failed to search attributes:', error);
+
+      this.toastService.showError(
+        'Unable to search attributes. Please try again.'
+      );
+
+      return of([]);
+    })
+  )
+)
+```
+
+### Result
+`switchMap()` unsubscribes from the previous search Observable when a new search term is emitted.
+
+For Angular HttpClient requests, unsubscribing also aborts the previous in-progress HTTP request.
+
+Therefore, only the latest search request is allowed to update the displayed results.
+
+### Difference Between mergeMap() and switchMap()
+
+| mergeMap() | switchMap() |
+|---|---|
+| Keeps previous requests active | Unsubscribes from previous requests |
+| Allows concurrent requests | Switches to the latest request |
+| Responses may arrive out of order | Older responses are discarded |
+| Useful when every request must complete | Useful for search and autocomplete |
+
+**Conclusion:** `switchMap()` is more appropriate for reactive search because the latest search term should determine the displayed results.
+
+### Bug C — Using Subject Instead of BehaviorSubject
+
+#### Problem
+Replaced `BehaviorSubject` with `Subject` in a service that shares data between components.
+
+#### Observation
+When a value was emitted before a component subscribed, the component did not receive that previously emitted value.
+
+The component received only new values emitted after its subscription began.
+
+#### Cause
+A `Subject` does not store previously emitted values. It only sends values to its current subscribers.
+
+A `BehaviorSubject` stores the latest emitted value and immediately provides that value to new subscribers.
+
+#### Fix
+Replaced `Subject` with `BehaviorSubject` and provided an initial value.
+
+```ts
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SharedDataService {
+
+  private dataSubject = new BehaviorSubject<string>('');
+
+  data$ = this.dataSubject.asObservable();
+
+  updateData(value: string): void {
+    this.dataSubject.next(value);
+  }
+}
+```
+
+#### Result
+New subscribers immediately receive the latest value stored in the `BehaviorSubject`, even if that value was emitted before they subscribed.
+
+#### Difference Between Subject and BehaviorSubject
+
+| Subject | BehaviorSubject |
+|---|---|
+| Does not store the latest value | Stores the latest value |
+| No initial value required | Requires an initial value |
+| New subscribers receive future emissions only | New subscribers immediately receive the latest value |
+| Does not replay previous values | Replays the latest value |
+
+
+### 13. Build a centralized state approach using BehaviorSubject:
+   • Create a StoreService that holds application state: attributes[], lookups, isLoading, isAuthenticated
+   • Migrate AttributeService and AuthService to dispatch through the store
+   • Components subscribe to store slices via async pipe
+   • All state updates must be immutable (spread operator). Comment: Why immutability? What breaks if you mutate?

@@ -1,7 +1,26 @@
 
-import { Component, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  ChangeDetectorRef,
+  OnInit,
+  DestroyRef,
+  inject
+} from '@angular/core';
+
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  tap,
+  catchError,
+  startWith,
+  of,
+  interval
+} from 'rxjs';
 
 import { AttributeService } from '../../services/attribute';
 import { IAttribute } from '../../models/attribute.model';
@@ -12,7 +31,6 @@ import { AttributeCardComponent } from '../../components/attribute-card/attribut
 
 import { ActiveStatus } from '../../../../shared/directives/active-status';
 import { RelativeTimePipe } from '../../../../shared/pipes/relative-time-pipe';
-import { FilterBy } from '../../../../shared/directives/filter-by';
 
 import { ToastService } from '../../../../core/services/toast.service';
 
@@ -21,22 +39,26 @@ import { ToastService } from '../../../../core/services/toast.service';
   standalone: true,
   imports: [
     DatePipe,
-    FormsModule,
+    ReactiveFormsModule,
     AttributeCardComponent,
     ActiveStatus,
     RelativeTimePipe,
-    FilterBy,
     AddAttributeComponent,
     EditAttributeComponent
   ],
   templateUrl: './attribute-list.html',
   styleUrl: './attribute-list.css'
 })
-export class AttributeListComponent {
+export class AttributeListComponent implements OnInit {
+
+  private destroyRef = inject(DestroyRef);
+
   attributes: IAttribute[] = [];
 
   viewMode: 'table' | 'card' = 'table';
-  searchTerm = '';
+
+  searchControl = new FormControl('', { nonNullable: true });
+  isSearching = false;
 
   showAddAttribute = false;
   selectedAttribute: IAttribute | null = null;
@@ -47,23 +69,51 @@ export class AttributeListComponent {
     private toastService: ToastService,
     private cdr: ChangeDetectorRef
   ) {
-    this.loadAttributes();
+    this.setupSearch();
   }
 
-  // Load attributes from JSON Server
-  loadAttributes(): void {
-    this.attributeService.getAttributes().subscribe({
-      next: attributes => {
-        this.attributes = attributes;
-        this.cdr.markForCheck();
-      },
-      error: error => {
-        console.error('Failed to load attributes:', error);
+  ngOnInit(): void {
+    // Temporary subscription for Bug A demonstration.
+    // takeUntilDestroyed automatically unsubscribes when this component is destroyed.
+    interval(2000)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(count => {
+        console.log('AttributeList subscription:', count);
+      });
+  }
 
-        this.toastService.showError(
-          'Unable to load attributes. Please try again.'
-        );
-      }
+  setupSearch(): void {
+    this.searchControl.valueChanges.pipe(
+      startWith(''),
+
+      tap(() => {
+        this.isSearching = true;
+        this.cdr.markForCheck();
+      }),
+
+      debounceTime(300),
+
+      distinctUntilChanged(),
+
+      switchMap(searchTerm =>
+        this.attributeService.searchAttributes(searchTerm).pipe(
+          catchError(error => {
+            console.error('Failed to search attributes:', error);
+
+            this.toastService.showError(
+              'Unable to search attributes. Please try again.'
+            );
+
+            return of([]);
+          })
+        )
+      )
+    ).subscribe(attributes => {
+      this.attributes = attributes;
+      this.isSearching = false;
+      this.cdr.markForCheck();
     });
   }
 
@@ -86,37 +136,37 @@ export class AttributeListComponent {
 
   // Add a new attribute
   addAttribute(newAttribute: IAttribute): void {
-  const nextId = this.attributes.length > 0
-    ? Math.max(
-        ...this.attributes.map(attribute => attribute.attributeId)
-      ) + 1
-    : 1;
+    const nextId = this.attributes.length > 0
+      ? Math.max(
+          ...this.attributes.map(attribute => attribute.attributeId)
+        ) + 1
+      : 1;
 
-  const attributeWithId: IAttribute = {
-    ...newAttribute,
-    attributeId: nextId
-  };
+    const attributeWithId: IAttribute = {
+      ...newAttribute,
+      attributeId: nextId
+    };
 
-  this.attributeService.addAttribute(attributeWithId).subscribe({
-    next: savedAttribute => {
-      this.attributes = [...this.attributes, savedAttribute];
+    this.attributeService.addAttribute(attributeWithId).subscribe({
+      next: savedAttribute => {
+        this.attributes = [...this.attributes, savedAttribute];
 
-      this.showAddAttribute = false;
+        this.showAddAttribute = false;
 
-      this.successMessage =
-        `"${savedAttribute.attributeName}" added successfully!`;
+        this.successMessage =
+          `"${savedAttribute.attributeName}" added successfully!`;
 
-      this.toastService.showSuccess(this.successMessage);
-    },
-    error: error => {
-      console.error('Failed to add attribute:', error);
+        this.toastService.showSuccess(this.successMessage);
+      },
+      error: error => {
+        console.error('Failed to add attribute:', error);
 
-      this.toastService.showError(
-        'Unable to add attribute. Please try again.'
-      );
-    }
-  });
-}
+        this.toastService.showError(
+          'Unable to add attribute. Please try again.'
+        );
+      }
+    });
+  }
 
   // Open Edit Attribute form
   openEditAttribute(attribute: IAttribute): void {
@@ -127,33 +177,34 @@ export class AttributeListComponent {
 
   // Save edited attribute
   saveEditedAttribute(updatedAttribute: IAttribute): void {
-  this.attributeService.updateAttribute(
-    updatedAttribute.attributeId,
-    updatedAttribute
-  ).subscribe({
-    next: savedAttribute => {
-      this.attributes = this.attributes.map(attribute =>
-        attribute.attributeId === savedAttribute.attributeId
-          ? savedAttribute
-          : attribute
-      );
+    this.attributeService.updateAttribute(
+      updatedAttribute.attributeId,
+      updatedAttribute
+    ).subscribe({
+      next: savedAttribute => {
+        this.attributes = this.attributes.map(attribute =>
+          attribute.attributeId === savedAttribute.attributeId
+            ? savedAttribute
+            : attribute
+        );
 
-      this.selectedAttribute = null;
+        this.selectedAttribute = null;
 
-      this.successMessage =
-        `"${savedAttribute.attributeName}" updated successfully!`;
+        this.successMessage =
+          `"${savedAttribute.attributeName}" updated successfully!`;
 
-      this.toastService.showSuccess(this.successMessage);
-    },
-    error: error => {
-      console.error('Failed to update attribute:', error);
+        this.toastService.showSuccess(this.successMessage);
+      },
+      error: error => {
+        console.error('Failed to update attribute:', error);
 
-      this.toastService.showError(
-        'Unable to update attribute. Please try again.'
-      );
-    }
-  });
-}
+        this.toastService.showError(
+          'Unable to update attribute. Please try again.'
+        );
+      }
+    });
+  }
+
   // Cancel Edit
   cancelEditAttribute(): void {
     this.selectedAttribute = null;
