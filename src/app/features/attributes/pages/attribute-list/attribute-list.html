@@ -13,145 +13,148 @@
 } @else {
   <div class="page-container">
 
-    <div class="page-header">
-      <div>
-        <h1>Attribute Management</h1>
-        <p>View your business attributes in table or card format.</p>
+    @if (attributes$ | async; as attributes) {
+
+      <div class="page-header">
+        <div>
+          <h1>Attribute Management</h1>
+          <p>View your business attributes in table or card format.</p>
+        </div>
+
+        <div class="header-actions">
+          <span class="record-count">
+            Total Attributes: {{ attributes.length }}
+          </span>
+
+          <button type="button" (click)="openAddAttribute()">
+            + Add Attribute
+          </button>
+        </div>
       </div>
 
-      <div class="header-actions">
-        <span class="record-count">
-          Total Attributes: {{ attributes.length }}
-        </span>
+      <!-- Reactive Search -->
+      <div class="search-container">
+        <input
+          type="text"
+          placeholder="Search by attribute or business unit..."
+          [formControl]="searchControl"
+        />
 
-        <button type="button" (click)="openAddAttribute()">
-          + Add Attribute
-        </button>
-      </div>
-    </div>
-
-    <!-- Reactive Search -->
-    <div class="search-container">
-      <input
-        type="text"
-        placeholder="Search by attribute or business unit..."
-        [formControl]="searchControl"
-      />
-
-      @if (isSearching) {
-        <span class="search-indicator">
-          Searching...
-        </span>
-      }
-    </div>
-
-    <!-- Table / Card View Toggle -->
-    <div class="view-toggle">
-      <button
-        type="button"
-        [class.selected]="viewMode === 'table'"
-        [attr.aria-pressed]="viewMode === 'table'"
-        (click)="setView('table')"
-      >
-        Table View
-      </button>
-
-      <button
-        type="button"
-        [class.selected]="viewMode === 'card'"
-        [attr.aria-pressed]="viewMode === 'card'"
-        (click)="setView('card')"
-      >
-        Card View
-      </button>
-    </div>
-
-    <!-- No Results Message -->
-    @if (!isSearching && attributes.length === 0) {
-      <p class="empty-message">
-        No attributes found matching "{{ searchControl.value }}".
-      </p>
-    }
-
-    <!-- Table View -->
-    @else if (viewMode === 'table') {
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Attribute Name</th>
-              <th>Business Unit</th>
-              <th>Location</th>
-              <th>Company</th>
-              <th>Status</th>
-              <th>Created By</th>
-              <th>Created On</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            @for (attribute of attributes; track attribute.attributeId) {
-              <tr>
-                <td>{{ attribute.attributeId }}</td>
-
-                <td class="attribute-name">
-                  {{ attribute.attributeName }}
-                </td>
-
-                <td>{{ attribute.businessUnitName }}</td>
-
-                <td>{{ attribute.customerLocationName }}</td>
-
-                <td>{{ attribute.companyName }}</td>
-
-                <td>
-                  <span [appActiveStatus]="attribute">
-                    {{ attribute.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-
-                <td>{{ attribute.createdBy }}</td>
-
-                <td>{{ attribute.createdOn | relativeTime }}</td>
-
-                <td>
-                  <button
-                    type="button"
-                    class="edit-button"
-                    (click)="openEditAttribute(attribute)"
-                  >
-                    Edit
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
-
-    <!-- Card View -->
-    @else {
-      <div class="card-grid">
-        @for (attribute of attributes; track attribute.attributeId) {
-          <div class="attribute-card-wrapper">
-
-            <app-attribute-card [attribute]="attribute" />
-
-            <button
-              type="button"
-              class="edit-button"
-              (click)="openEditAttribute(attribute)"
-            >
-              Edit
-            </button>
-
-          </div>
+        @if (isSearching) {
+          <span class="search-indicator">
+            Searching...
+          </span>
         }
       </div>
-    }
 
+      <!-- Table / Card View Toggle -->
+      <div class="view-toggle">
+        <button
+          type="button"
+          [class.selected]="viewMode === 'table'"
+          [attr.aria-pressed]="viewMode === 'table'"
+          (click)="setView('table')"
+        >
+          Table View
+        </button>
+
+        <button
+          type="button"
+          [class.selected]="viewMode === 'card'"
+          [attr.aria-pressed]="viewMode === 'card'"
+          (click)="setView('card')"
+        >
+          Card View
+        </button>
+      </div>
+
+      <!-- No Results Message -->
+      @if (!isSearching && attributes.length === 0) {
+        <p class="empty-message">
+          No attributes found matching "{{ searchControl.value }}".
+        </p>
+      }
+
+      <!-- Table View -->
+      @else if (viewMode === 'table') {
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Attribute Name</th>
+                <th>Business Unit</th>
+                <th>Location</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th>Created On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (attribute of attributes; track attribute.attributeId) {
+                <tr>
+                  <td>{{ attribute.attributeId }}</td>
+
+                  <td class="attribute-name">
+                    {{ attribute.attributeName }}
+                  </td>
+
+                  <td>{{ attribute.businessUnitName }}</td>
+
+                  <td>{{ attribute.customerLocationName }}</td>
+
+                  <td>{{ attribute.companyName }}</td>
+
+                  <td>
+                    <span [appActiveStatus]="attribute">
+                      {{ attribute.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+
+                  <td>{{ attribute.createdBy }}</td>
+
+                  <td>{{ attribute.createdOn | relativeTime }}</td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="edit-button"
+                      (click)="openEditAttribute(attribute)"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- Card View -->
+      @else {
+        <div class="card-grid">
+          @for (attribute of attributes; track attribute.attributeId) {
+            <div class="attribute-card-wrapper">
+
+              <app-attribute-card [attribute]="attribute" />
+
+              <button
+                type="button"
+                class="edit-button"
+                (click)="openEditAttribute(attribute)"
+              >
+                Edit
+              </button>
+
+            </div>
+          }
+        </div>
+      }
+
+    }
   </div>
 }

@@ -1,6 +1,7 @@
 
 <div class="form-page">
   <div class="form-card">
+
     <div class="form-header">
       <button
         type="button"
@@ -20,113 +21,147 @@
       </p>
     }
 
-    <form #editForm="ngForm" (ngSubmit)="onSave()">
+    @if (lookups$ | async; as lookups) {
+      <form #editForm="ngForm" (ngSubmit)="onSave()">
 
-      <div class="form-field">
-        <label for="attributeName">Attribute Name *</label>
-        <input
-          id="attributeName"
-          name="attributeName"
-          type="text"
-          [(ngModel)]="editedAttribute.attributeName"
-          required
-          minlength="3"
-          pattern="[a-zA-Z0-9 -]+"
-          #attributeName="ngModel"
-          [class.invalid]="attributeName.invalid &&
-            (attributeName.touched || editForm.submitted)"
-        />
+        <!-- Attribute Name -->
+        <div class="form-field">
+          <label for="attributeName">Attribute Name *</label>
 
-        @if (attributeName.invalid &&
-          (attributeName.touched || editForm.submitted)) {
-          <div class="error-message">
-            @if (attributeName.hasError('required')) {
-              <p>Attribute name is required.</p>
-            }
-            @if (attributeName.hasError('minlength')) {
-              <p>Enter at least 3 characters.</p>
-            }
-            @if (attributeName.hasError('pattern')) {
-              <p>Only letters, numbers, spaces, and hyphens are allowed.</p>
-            }
-          </div>
-        }
-      </div>
+          <input
+            id="attributeName"
+            name="attributeName"
+            type="text"
+            [(ngModel)]="editedAttribute.attributeName"
+            required
+            minlength="3"
+            pattern="[a-zA-Z0-9 -]+"
+            #attributeName="ngModel"
+            [class.invalid]="attributeName.invalid &&
+              (attributeName.touched || editForm.submitted)"
+          />
 
-      <div class="form-field">
-        <label for="businessUnit">Business Unit *</label>
-        <select
-          id="businessUnit"
-          name="businessUnitId"
-          [(ngModel)]="editedAttribute.businessUnitId"
-          (ngModelChange)="onBusinessUnitChange($event)"
-          required
-        >
-          <option [ngValue]="null">Select a business unit</option>
+          @if (attributeName.invalid &&
+            (attributeName.touched || editForm.submitted)) {
+            <div class="error-message">
 
-          @for (unit of businessUnits; track unit.businessId) {
-            <option [ngValue]="unit.businessId">
-              {{ unit.businessName }}
-            </option>
+              @if (attributeName.hasError('required')) {
+                <p>Attribute name is required.</p>
+              }
+
+              @if (attributeName.hasError('minlength')) {
+                <p>Enter at least 3 characters.</p>
+              }
+
+              @if (attributeName.hasError('pattern')) {
+                <p>Only letters, numbers, spaces, and hyphens are allowed.</p>
+              }
+
+            </div>
           }
-        </select>
-      </div>
+        </div>
 
-      <div class="form-field">
-        <label for="customerLocation">Customer Location *</label>
-        <select
-          id="customerLocation"
-          name="customerLocationId"
-          [(ngModel)]="editedAttribute.customerLocationId"
-          required
-          [disabled]="customerLocations.length === 0"
-        >
-          <option [ngValue]="null">Select a customer location</option>
+        <!-- Business Unit -->
+        <div class="form-field">
+          <label for="businessUnit">Business Unit *</label>
 
-          @for (location of customerLocations; track location.customerLocationId) {
-            <option [ngValue]="location.customerLocationId">
-              {{ location.customerLocationName }}
+          <select
+            id="businessUnit"
+            name="businessUnitId"
+            [(ngModel)]="editedAttribute.businessUnitId"
+            (ngModelChange)="onBusinessUnitChange($event)"
+            required
+          >
+            <option [ngValue]="null">
+              Select a business unit
             </option>
-          }
-        </select>
-      </div>
 
-      <div class="form-field">
-        <label for="company">Company *</label>
-        <select
-          id="company"
-          name="companyId"
-          [(ngModel)]="editedAttribute.companyId"
-          required
-        >
-          <option [ngValue]="null">Select a company</option>
+            @for (
+              unit of lookups.businessUnits;
+              track unit.businessId
+            ) {
+              <option [ngValue]="unit.businessId">
+                {{ unit.businessName }}
+              </option>
+            }
+          </select>
+        </div>
 
-          @for (company of companies; track company.companyId) {
-            <option [ngValue]="company.companyId">
-              {{ company.companyName }}
+        <!-- Customer Location -->
+        <div class="form-field">
+          <label for="customerLocation">Customer Location *</label>
+
+          <select
+            id="customerLocation"
+            name="customerLocationId"
+            [(ngModel)]="editedAttribute.customerLocationId"
+            required
+            [disabled]="customerLocations.length === 0"
+          >
+            <option [ngValue]="null">
+              Select a customer location
             </option>
-          }
-        </select>
-      </div>
 
-      <div class="checkbox-field">
-        <input
-          id="isActive"
-          name="isActive"
-          type="checkbox"
-          [(ngModel)]="editedAttribute.isActive"
-        />
-        <label for="isActive">Active</label>
-      </div>
+            @for (
+              location of customerLocations;
+              track location.customerLocationId
+            ) {
+              <option [ngValue]="location.customerLocationId">
+                {{ location.customerLocationName }}
+              </option>
+            }
+          </select>
+        </div>
 
-      <div class="form-actions">
-        <button
-          type="submit"
-          [disabled]="editForm.invalid || !hasUnsavedChanges"
-        >
-          Save Changes
-        </button>
-      </div>
-    </form>
+        <!-- Company -->
+        <div class="form-field">
+          <label for="company">Company *</label>
+
+          <select
+            id="company"
+            name="companyId"
+            [(ngModel)]="editedAttribute.companyId"
+            required
+          >
+            <option [ngValue]="null">
+              Select a company
+            </option>
+
+            @for (
+              company of lookups.companies;
+              track company.companyId
+            ) {
+              <option [ngValue]="company.companyId">
+                {{ company.companyName }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <!-- Active Status -->
+        <div class="checkbox-field">
+          <input
+            id="isActive"
+            name="isActive"
+            type="checkbox"
+            [(ngModel)]="editedAttribute.isActive"
+          />
+
+          <label for="isActive">Active</label>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button
+            type="submit"
+            [disabled]="editForm.invalid || !hasUnsavedChanges"
+          >
+            Save Changes
+          </button>
+        </div>
+
+      </form>
+    }
+
   </div>
 </div>

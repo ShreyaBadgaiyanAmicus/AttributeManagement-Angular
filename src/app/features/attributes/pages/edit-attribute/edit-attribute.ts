@@ -1,27 +1,34 @@
 
+import { AsyncPipe } from '@angular/common';
+
 import {
   Component,
   EventEmitter,
   Input,
   Output,
-  OnInit
+  OnInit,
+  DestroyRef,
+  inject
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
   IAttribute,
-  IBusinessUnit,
-  ICustomerLocation,
-  ICompany
+  ICustomerLocation
 } from '../../models/attribute.model';
 
 import { LookupService } from '../../services/lookup';
+import { StoreService } from '../../../../core/services/store';
 
 @Component({
   selector: 'app-edit-attribute',
   standalone: true,
-  imports: [FormsModule],
+  imports: [
+    AsyncPipe,
+    FormsModule
+  ],
   templateUrl: './edit-attribute.html',
   styleUrl: './edit-attribute.css'
 })
@@ -31,12 +38,15 @@ export class EditAttributeComponent implements OnInit {
   @Output() save = new EventEmitter<IAttribute>();
   @Output() cancel = new EventEmitter<void>();
 
+  private destroyRef = inject(DestroyRef);
+  private store = inject(StoreService);
+
+  lookups$ = this.store.lookups$;
+
   editedAttribute!: IAttribute;
   originalAttribute!: IAttribute;
 
-  businessUnits: IBusinessUnit[] = [];
   customerLocations: ICustomerLocation[] = [];
-  companies: ICompany[] = [];
 
   constructor(private lookupService: LookupService) {}
 
@@ -44,42 +54,63 @@ export class EditAttributeComponent implements OnInit {
     this.originalAttribute = { ...this.attribute };
     this.editedAttribute = { ...this.attribute };
 
-    this.loadBusinessUnits();
-    this.loadCompanies();
-    this.loadCustomerLocations(this.attribute.businessUnitId);
+    // Keep dependent locations synchronized with the Store.
+    this.lookups$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(lookups => {
+        this.updateCustomerLocations(
+          lookups.customerLocations,
+          this.editedAttribute.businessUnitId
+        );
+      });
+
+    // Load only lookup data that is not already in the Store.
+    const lookups = this.store.getState().lookups;
+
+    if (lookups.businessUnits.length === 0) {
+      this.lookupService.getBusinessUnits()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: error =>
+            console.error('Failed to load business units:', error)
+        });
+    }
+
+    if (lookups.customerLocations.length === 0) {
+      this.lookupService.getCustomerLocations()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: error =>
+            console.error('Failed to load customer locations:', error)
+        });
+    }
+
+    if (lookups.companies.length === 0) {
+      this.lookupService.getCompanies()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          error: error =>
+            console.error('Failed to load companies:', error)
+        });
+    }
   }
 
-  loadBusinessUnits(): void {
-    this.lookupService.getBusinessUnits().subscribe({
-      next: units => this.businessUnits = units,
-      error: error => console.error('Failed to load business units:', error)
-    });
-  }
-
-  loadCompanies(): void {
-    this.lookupService.getCompanies().subscribe({
-      next: companies => this.companies = companies,
-      error: error => console.error('Failed to load companies:', error)
-    });
-  }
-
-  loadCustomerLocations(businessId: number): void {
-    this.lookupService.getLocationsByBusinessUnit(businessId).subscribe({
-      next: locations => this.customerLocations = locations,
-      error: error => console.error('Failed to load customer locations:', error)
-    });
+  private updateCustomerLocations(
+    locations: (ICustomerLocation & { businessUnitId: number })[],
+    businessId: number
+  ): void {
+    this.customerLocations = locations.filter(
+      location => location.businessUnitId === businessId
+    );
   }
 
   onBusinessUnitChange(businessId: number): void {
     this.editedAttribute.customerLocationId = null as unknown as number;
     this.editedAttribute.customerLocationName = '';
-    this.customerLocations = [];
 
-    if (!businessId) {
-      return;
-    }
+    const locations = this.store.getState().lookups.customerLocations;
 
-    this.loadCustomerLocations(businessId);
+    this.updateCustomerLocations(locations, businessId);
   }
 
   get hasUnsavedChanges(): boolean {
@@ -91,16 +122,19 @@ export class EditAttributeComponent implements OnInit {
   }
 
   onSave(): void {
-    const selectedBusinessUnit = this.businessUnits.find(
+    const lookups = this.store.getState().lookups;
+
+    const selectedBusinessUnit = lookups.businessUnits.find(
       unit => unit.businessId === this.editedAttribute.businessUnitId
     );
 
     const selectedLocation = this.customerLocations.find(
       location =>
-        location.customerLocationId === this.editedAttribute.customerLocationId
+        location.customerLocationId ===
+        this.editedAttribute.customerLocationId
     );
 
-    const selectedCompany = this.companies.find(
+    const selectedCompany = lookups.companies.find(
       company => company.companyId === this.editedAttribute.companyId
     );
 
@@ -108,11 +142,18 @@ export class EditAttributeComponent implements OnInit {
       return;
     }
 
-    this.editedAttribute.businessUnitName = selectedBusinessUnit.businessName;
-    this.editedAttribute.customerLocationName = selectedLocation.customerLocationName;
-    this.editedAttribute.companyName = selectedCompany.companyName;
+    this.editedAttribute.businessUnitName =
+      selectedBusinessUnit.businessName;
 
-    this.save.emit({ ...this.editedAttribute });
+    this.editedAttribute.customerLocationName =
+      selectedLocation.customerLocationName;
+
+    this.editedAttribute.companyName =
+      selectedCompany.companyName;
+
+    const savedAttribute = { ...this.editedAttribute };
+
+    this.save.emit(savedAttribute);
   }
 
   onCancel(): void {

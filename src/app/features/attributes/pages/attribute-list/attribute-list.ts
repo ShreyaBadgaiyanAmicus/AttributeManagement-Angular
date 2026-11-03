@@ -7,7 +7,7 @@ import {
   inject
 } from '@angular/core';
 
-import { DatePipe } from '@angular/common';
+import { DatePipe, AsyncPipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -25,6 +25,8 @@ import {
 import { AttributeService } from '../../services/attribute';
 import { IAttribute } from '../../models/attribute.model';
 
+import { StoreService } from '../../../../core/services/store';
+
 import { AddAttributeComponent } from '../add-attribute/add-attribute';
 import { EditAttributeComponent } from '../edit-attribute/edit-attribute';
 import { AttributeCardComponent } from '../../components/attribute-card/attribute-card';
@@ -39,6 +41,7 @@ import { ToastService } from '../../../../core/services/toast.service';
   standalone: true,
   imports: [
     DatePipe,
+    AsyncPipe,
     ReactiveFormsModule,
     AttributeCardComponent,
     ActiveStatus,
@@ -52,8 +55,10 @@ import { ToastService } from '../../../../core/services/toast.service';
 export class AttributeListComponent implements OnInit {
 
   private destroyRef = inject(DestroyRef);
+  private store = inject(StoreService);
 
-  attributes: IAttribute[] = [];
+  // Observable from centralized Store
+  attributes$ = this.store.attributes$;
 
   viewMode: 'table' | 'card' = 'table';
 
@@ -74,11 +79,8 @@ export class AttributeListComponent implements OnInit {
 
   ngOnInit(): void {
     // Temporary subscription for Bug A demonstration.
-    // takeUntilDestroyed automatically unsubscribes when this component is destroyed.
     interval(2000)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef)
-      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(count => {
         console.log('AttributeList subscription:', count);
       });
@@ -94,7 +96,6 @@ export class AttributeListComponent implements OnInit {
       }),
 
       debounceTime(300),
-
       distinctUntilChanged(),
 
       switchMap(searchTerm =>
@@ -109,9 +110,11 @@ export class AttributeListComponent implements OnInit {
             return of([]);
           })
         )
-      )
-    ).subscribe(attributes => {
-      this.attributes = attributes;
+      ),
+
+      takeUntilDestroyed(this.destroyRef)
+
+    ).subscribe(() => {
       this.isSearching = false;
       this.cdr.markForCheck();
     });
@@ -136,9 +139,11 @@ export class AttributeListComponent implements OnInit {
 
   // Add a new attribute
   addAttribute(newAttribute: IAttribute): void {
-    const nextId = this.attributes.length > 0
+    const currentAttributes = this.store.getState().attributes;
+
+    const nextId = currentAttributes.length > 0
       ? Math.max(
-          ...this.attributes.map(attribute => attribute.attributeId)
+          ...currentAttributes.map(attribute => attribute.attributeId)
         ) + 1
       : 1;
 
@@ -149,7 +154,7 @@ export class AttributeListComponent implements OnInit {
 
     this.attributeService.addAttribute(attributeWithId).subscribe({
       next: savedAttribute => {
-        this.attributes = [...this.attributes, savedAttribute];
+        // AttributeService already updates the Store.
 
         this.showAddAttribute = false;
 
@@ -182,11 +187,7 @@ export class AttributeListComponent implements OnInit {
       updatedAttribute
     ).subscribe({
       next: savedAttribute => {
-        this.attributes = this.attributes.map(attribute =>
-          attribute.attributeId === savedAttribute.attributeId
-            ? savedAttribute
-            : attribute
-        );
+        // AttributeService already updates the Store.
 
         this.selectedAttribute = null;
 

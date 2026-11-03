@@ -1,7 +1,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap, finalize } from 'rxjs';
 
 import {
   IBusinessUnit,
@@ -12,6 +12,9 @@ import {
 import { BusinessUnitDTO } from '../dtos/business-unit.dto';
 import { CustomerLocationDTO } from '../dtos/customer-location.dto';
 import { CompanyDTO } from '../dtos/company.dto';
+
+import { StoreService } from '../../../core/services/store';
+
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -20,18 +23,30 @@ import { environment } from '../../../../environments/environment';
 export class LookupService {
 
   private http = inject(HttpClient);
+  private store = inject(StoreService);
 
   private apiUrl = environment.apiBaseUrl;
 
   // Get all business units
   getBusinessUnits(): Observable<IBusinessUnit[]> {
+    this.store.setLoading(true);
+
     return this.http.get<BusinessUnitDTO[]>(
       `${this.apiUrl}/businessUnits`
     ).pipe(
       map(dtos => dtos.map(dto => ({
         businessId: dto.business_id,
         businessName: dto.business_name
-      })))
+      }))),
+
+      tap(businessUnits => {
+        this.store.setLookups({
+          ...this.store.getState().lookups,
+          businessUnits
+        });
+      }),
+
+      finalize(() => this.store.setLoading(false))
     );
   }
 
@@ -39,6 +54,8 @@ export class LookupService {
   getCustomerLocations(): Observable<
     (ICustomerLocation & { businessUnitId: number })[]
   > {
+    this.store.setLoading(true);
+
     return this.http.get<CustomerLocationDTO[]>(
       `${this.apiUrl}/customerLocations`
     ).pipe(
@@ -46,7 +63,16 @@ export class LookupService {
         customerLocationId: dto.customer_location_id,
         customerLocationName: dto.customer_location_name,
         businessUnitId: dto.business_unit_id
-      })))
+      }))),
+
+      tap(customerLocations => {
+        this.store.setLookups({
+          ...this.store.getState().lookups,
+          customerLocations
+        });
+      }),
+
+      finalize(() => this.store.setLoading(false))
     );
   }
 
@@ -65,13 +91,24 @@ export class LookupService {
 
   // Get all companies
   getCompanies(): Observable<ICompany[]> {
+    this.store.setLoading(true);
+
     return this.http.get<CompanyDTO[]>(
       `${this.apiUrl}/companies`
     ).pipe(
       map(dtos => dtos.map(dto => ({
         companyId: dto.company_id,
         companyName: dto.company_name
-      })))
+      }))),
+
+      tap(companies => {
+        this.store.setLookups({
+          ...this.store.getState().lookups,
+          companies
+        });
+      }),
+
+      finalize(() => this.store.setLoading(false))
     );
   }
 }
