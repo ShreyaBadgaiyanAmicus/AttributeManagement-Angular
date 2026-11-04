@@ -194,6 +194,21 @@
       "created_by": "Current User",
       "updated_on": null,
       "updated_by": null
+    },
+    {
+      "attribute_id": 14,
+      "attribute_name": "Color",
+      "business_unit_id": 2,
+      "customer_location_id": 2,
+      "company_id": 3,
+      "business_unit_name": "Finance",
+      "customer_location_name": "Pune",
+      "company_name": "GlobalWorks",
+      "is_active": true,
+      "created_on": "2026-11-04T10:31:36.689Z",
+      "created_by": "Current User",
+      "updated_on": null,
+      "updated_by": null
     }
   ],
   "businessUnits": [

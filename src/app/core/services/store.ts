@@ -9,6 +9,9 @@ import {
   ICompany
 } from '../../features/attributes/models/attribute.model';
 
+// Supported user roles
+export type UserRole = 'Admin' | 'Viewer';
+
 export interface AppState {
   attributes: IAttribute[];
 
@@ -22,6 +25,8 @@ export interface AppState {
 
   isLoading: boolean;
   isAuthenticated: boolean;
+  role: UserRole | null;
+  username: string | null;
 }
 
 @Injectable({
@@ -39,7 +44,9 @@ export class StoreService {
     },
 
     isLoading: false,
-    isAuthenticated: false
+    isAuthenticated: false,
+    role: null,
+    username: null
   };
 
   private stateSubject = new BehaviorSubject<AppState>(
@@ -64,6 +71,14 @@ export class StoreService {
 
   isAuthenticated$ = this.state$.pipe(
     map(state => state.isAuthenticated)
+  );
+
+  role$ = this.state$.pipe(
+    map(state => state.role)
+  );
+
+  username$ = this.state$.pipe(
+    map(state => state.username)
   );
 
   // Get the current state
@@ -138,11 +153,17 @@ export class StoreService {
     });
   }
 
-  // Update authentication status
-  setAuthenticated(isAuthenticated: boolean): void {
+  // Update authentication, role and username
+  setAuthenticated(
+    isAuthenticated: boolean,
+    role: UserRole | null = null,
+    username: string | null = null
+  ): void {
     this.updateState({
       ...this.getState(),
-      isAuthenticated
+      isAuthenticated,
+      role: isAuthenticated ? role : null,
+      username: isAuthenticated ? username : null
     });
   }
 }

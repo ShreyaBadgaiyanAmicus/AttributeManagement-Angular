@@ -9,14 +9,53 @@
         <p>View your business attributes in table or card format.</p>
       </div>
 
-      <div class="header-actions">
-        <span class="record-count">
-          Total Attributes: {{ attributes.length }}
-        </span>
+      <div class="header-right">
 
-        <button type="button" (click)="openAddAttribute()">
-          + Add Attribute
-        </button>
+        <!-- Logged-in User Profile -->
+        <div class="user-profile">
+
+          <div class="user-avatar">
+            {{ username.charAt(0).toUpperCase() }}
+          </div>
+
+          <div class="user-details">
+            <span class="profile-username">
+              {{ username }}
+            </span>
+
+            @if (role; as currentRole) {
+              <span [appRoleBadge]="currentRole">
+                {{ currentRole }}
+              </span>
+            }
+          </div>
+
+          <button
+            type="button"
+            class="logout-button"
+            (click)="logout()"
+          >
+            Logout
+          </button>
+
+        </div>
+
+        <!-- Attribute Actions -->
+        <div class="header-actions">
+          <span class="record-count">
+            Total Attributes: {{ attributes.length }}
+          </span>
+
+          @if (isAdmin) {
+            <button
+              type="button"
+              (click)="openAddAttribute()"
+            >
+              + Add Attribute
+            </button>
+          }
+        </div>
+
       </div>
     </div>
 
@@ -106,13 +145,23 @@
 
                 <td>{{ attribute.createdOn | relativeTime }}</td>
 
-                <td>
+                <td class="action-buttons">
                   <button
                     type="button"
                     class="edit-button"
+                    [disabled]="!isAdmin"
                     (click)="openEditAttribute(attribute)"
                   >
                     Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    class="delete-button"
+                    [disabled]="!isAdmin"
+                    (click)="deleteAttribute(attribute)"
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -130,13 +179,25 @@
 
             <app-attribute-card [attribute]="attribute" />
 
-            <button
-              type="button"
-              class="edit-button"
-              (click)="openEditAttribute(attribute)"
-            >
-              Edit
-            </button>
+            <div class="card-actions">
+              <button
+                type="button"
+                class="edit-button"
+                [disabled]="!isAdmin"
+                (click)="openEditAttribute(attribute)"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                class="delete-button"
+                [disabled]="!isAdmin"
+                (click)="deleteAttribute(attribute)"
+              >
+                Delete
+              </button>
+            </div>
 
           </div>
         }

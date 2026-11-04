@@ -2018,3 +2018,15 @@ export class LoaderComponent {
   isLoading$ = this.store.isLoading$;
 }
 ```
+
+
+## Assignment 3
+
+### 1. Extend the AuthService/LoginComponent from Assignment 2:
+   • Add role support: "Admin" and "Viewer" (store role in the BehaviorSubject store)
+   • Admin can view, add, edit, delete attributes
+   • Viewer can only view the attribute list (read-only)
+   • Hide the "Add Attribute" button for Viewers. Disable edit/delete actions for Viewers.
+   • Protect /attributes/add route with a RoleGuard (only Admin). If Viewer navigates to it directly via URL, redirect with a "Access denied" toast message.
+   • Implement auto-logout after 10 minutes of inactivity: build an IdleService that tracks mouse/keyboard activity using RxJS (fromEvent, merge, switchMap, timer). On timeout, clear auth state and redirect to login.
+

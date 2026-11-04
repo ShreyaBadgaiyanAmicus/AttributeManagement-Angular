@@ -1,7 +1,10 @@
+
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+
+import { AuthService } from '../../../core/services/auth';
+import { UserRole } from '../../../core/services/store';
 
 @Component({
   selector: 'app-login',
@@ -18,11 +21,15 @@ export class LoginComponent {
 
   username = '';
   password = '';
+  role: UserRole = 'Admin';
 
   login(): void {
     if (this.username.trim() && this.password.trim()) {
 
-      this.authService.login();
+      this.authService.login(
+        this.role,
+        this.username.trim()
+      );
 
       const returnUrl =
         this.route.snapshot.queryParams['returnUrl'] || '/attributes';
