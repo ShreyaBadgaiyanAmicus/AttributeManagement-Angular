@@ -1,51 +1,6 @@
 {
   "attributes": [
     {
-      "attribute_id": 6,
-      "attribute_name": "Office Location",
-      "business_unit_id": 5,
-      "customer_location_id": 6,
-      "company_id": 3,
-      "business_unit_name": "Administration",
-      "customer_location_name": "Mumbai",
-      "company_name": "GlobalWorks",
-      "is_active": true,
-      "created_on": "2026-06-18",
-      "created_by": "Vikram",
-      "updated_on": null,
-      "updated_by": null
-    },
-    {
-      "attribute_id": 7,
-      "attribute_name": "Client Reference",
-      "business_unit_id": 6,
-      "customer_location_id": 7,
-      "company_id": 1,
-      "business_unit_name": "Sales",
-      "customer_location_name": "Chennai",
-      "company_name": "Amicus",
-      "is_active": false,
-      "created_on": "2026-07-04",
-      "created_by": "Ananya",
-      "updated_on": null,
-      "updated_by": null
-    },
-    {
-      "attribute_id": 8,
-      "attribute_name": "Asset Tag",
-      "business_unit_id": 3,
-      "customer_location_id": 8,
-      "company_id": 2,
-      "business_unit_name": "Technology",
-      "customer_location_name": "Pune",
-      "company_name": "TechNova",
-      "is_active": true,
-      "created_on": "2026-08-20",
-      "created_by": "Rahul",
-      "updated_on": "2026-09-01",
-      "updated_by": "Neha"
-    },
-    {
       "attribute_id": 9,
       "attribute_name": "Color",
       "business_unit_id": 2,
@@ -266,12 +221,20 @@
       "attribute_id": 1
     },
     {
-      "id": 2,
+      "id": 3,
       "action": "delete",
-      "attributeId": 18,
-      "attributeName": "asfcs",
-      "timestamp": "2026-11-10T08:03:01.219Z",
+      "attributeId": 6,
+      "attributeName": "Office Location",
+      "timestamp": "2026-11-10T10:42:20.459Z",
       "attribute_id": 2
+    },
+    {
+      "id": 5,
+      "action": "delete",
+      "attributeId": 7,
+      "attributeName": "Client Reference",
+      "timestamp": "2026-11-10T11:02:28.110Z",
+      "attribute_id": 3
     }
   ],
   "businessUnits": [

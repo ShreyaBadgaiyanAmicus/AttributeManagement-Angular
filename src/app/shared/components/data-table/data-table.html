@@ -1,0 +1,98 @@
+
+<div class="data-table-container">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          @for (column of columns; track column.key) {
+            <th
+              [class.sortable]="column.sortable"
+              [attr.aria-sort]="
+                sortField === column.key
+                  ? (sortDirection === 'asc' ? 'ascending' : 'descending')
+                  : 'none'
+              "
+              (click)="onSort(column)"
+            >
+              {{ column.label }}
+
+              @if (column.sortable) {
+                <span class="sort-icon">
+                  @if (sortField === column.key) {
+                    {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                  } @else {
+                    ↕
+                  }
+                </span>
+              }
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (data.length > 0) {
+          @for (row of data; track $index) {
+            <tr>
+              @for (column of columns; track column.key) {
+                <td>
+                  @if (cellTemplates[column.key]; as cellTemplate) {
+                    <ng-container
+                      [ngTemplateOutlet]="cellTemplate"
+                      [ngTemplateOutletContext]="{ $implicit: row }"
+                    />
+                  } @else {
+                    {{ getCellValue(row, column.key) }}
+                  }
+                </td>
+              }
+            </tr>
+          }
+        } @else {
+          <tr>
+            <td
+              [attr.colspan]="columns.length"
+              class="empty-message"
+            >
+              No records found.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <span class="page-info">
+      Showing
+      {{ totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}
+      to
+      {{ currentPage * pageSize > totalRecords
+        ? totalRecords
+        : currentPage * pageSize }}
+      of {{ totalRecords }} records
+    </span>
+
+    <div class="pagination-controls">
+      <button
+        type="button"
+        [disabled]="currentPage <= 1"
+        (click)="goToPage(currentPage - 1)"
+      >
+        Previous
+      </button>
+
+      <span class="current-page">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+
+      <button
+        type="button"
+        [disabled]="currentPage >= totalPages || totalPages === 0"
+        (click)="goToPage(currentPage + 1)"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>

@@ -95,57 +95,82 @@
       </button>
     </div>
 
-    <!-- No Results Message -->
-    @if (!isSearching && attributes.length === 0) {
-      <p class="empty-message">
-        No attributes found matching "{{ searchControl.value }}".
-      </p>
+    <!-- Table View -->
+    @if (viewMode === 'table') {
+
+      <!-- Custom Status Cell -->
+      <ng-template #statusTemplate let-attribute>
+        <span [appActiveStatus]="attribute">
+          {{ attribute.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </ng-template>
+
+      <!-- Custom Created On Cell -->
+      <ng-template #createdOnTemplate let-attribute>
+        {{ attribute.createdOn | relativeTime }}
+      </ng-template>
+
+      <!-- Custom Actions Cell -->
+      <ng-template #actionsTemplate let-attribute>
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="edit-button"
+            [disabled]="!isAdmin"
+            (click)="openEditAttribute(attribute)"
+          >
+            Edit
+          </button>
+
+          <button
+            type="button"
+            class="delete-button"
+            [disabled]="!isAdmin"
+            (click)="requestDelete(attribute)"
+          >
+            Delete
+          </button>
+        </div>
+      </ng-template>
+
+      <!-- Reusable Data Table -->
+      <app-data-table
+        [columns]="columns"
+        [data]="pagedAttributes"
+        [cellTemplates]="{
+          isActive: statusTemplate,
+          createdOn: createdOnTemplate,
+          actions: actionsTemplate
+        }"
+        [currentPage]="currentPage"
+        [pageSize]="pageSize"
+        [totalRecords]="totalRecords"
+        [sortField]="sortField"
+        [sortDirection]="sortDirection"
+        (sortChange)="onSortChange($event)"
+        (pageChange)="onPageChange($event)"
+      />
+
     }
 
-    <!-- Table View -->
-    @else if (viewMode === 'table') {
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Attribute Name</th>
-              <th>Business Unit</th>
-              <th>Location</th>
-              <th>Company</th>
-              <th>Status</th>
-              <th>Created By</th>
-              <th>Created On</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+    <!-- Card View -->
+    @else {
 
-          <tbody>
-            @for (attribute of attributes; track attribute.attributeId) {
-              <tr>
-                <td>{{ attribute.attributeId }}</td>
+      @if (cardAttributes$ | async; as cardAttributes) {
 
-                <td class="attribute-name">
-                  {{ attribute.attributeName }}
-                </td>
+        @if (cardAttributes.length === 0) {
+          <p class="empty-message">
+            No attributes found matching "{{ searchControl.value }}".
+          </p>
+        } @else {
 
-                <td>{{ attribute.businessUnitName }}</td>
+          <div class="card-grid">
+            @for (attribute of cardAttributes; track attribute.attributeId) {
+              <div class="attribute-card-wrapper">
 
-                <td>{{ attribute.customerLocationName }}</td>
+                <app-attribute-card [attribute]="attribute" />
 
-                <td>{{ attribute.companyName }}</td>
-
-                <td>
-                  <span [appActiveStatus]="attribute">
-                    {{ attribute.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-
-                <td>{{ attribute.createdBy }}</td>
-
-                <td>{{ attribute.createdOn | relativeTime }}</td>
-
-                <td class="action-buttons">
+                <div class="card-actions">
                   <button
                     type="button"
                     class="edit-button"
@@ -159,50 +184,33 @@
                     type="button"
                     class="delete-button"
                     [disabled]="!isAdmin"
-                    (click)="deleteAttribute(attribute)"
+                    (click)="requestDelete(attribute)"
                   >
                     Delete
                   </button>
-                </td>
-              </tr>
+                </div>
+
+              </div>
             }
-          </tbody>
-        </table>
-      </div>
-    }
-
-    <!-- Card View -->
-    @else {
-      <div class="card-grid">
-        @for (attribute of attributes; track attribute.attributeId) {
-          <div class="attribute-card-wrapper">
-
-            <app-attribute-card [attribute]="attribute" />
-
-            <div class="card-actions">
-              <button
-                type="button"
-                class="edit-button"
-                [disabled]="!isAdmin"
-                (click)="openEditAttribute(attribute)"
-              >
-                Edit
-              </button>
-
-              <button
-                type="button"
-                class="delete-button"
-                [disabled]="!isAdmin"
-                (click)="deleteAttribute(attribute)"
-              >
-                Delete
-              </button>
-            </div>
-
           </div>
+
         }
-      </div>
+      }
+
     }
 
   }
+
+  <!-- Confirmation Dialog -->
+  @if (showConfirmDialog && pendingDeleteAttribute) {
+    <app-confirm-dialog
+      [title]="'Delete Attribute'"
+      [message]="'Are you sure you want to delete ' + pendingDeleteAttribute.attributeName + '?'"
+      [confirmText]="'Delete'"
+      [cancelText]="'Cancel'"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  }
+
 </div>

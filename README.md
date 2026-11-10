@@ -2058,3 +2058,18 @@ export class LoaderComponent {
    • CollapsibleSectionComponent: named slots for header and body (<ng-content select="[header]"> and <ng-content select="[body]">). Use it on Dashboard for each widget.
    • ConfirmDialogComponent: a modal dialog for delete confirmations. Built from scratch, no third-party.
    • DataTableComponent: a reusable sortable, paginated table. Refactor AttributeListComponent's table view to use this. Sorting and pagination must work with the API (pass sort/page params) not just client-side.
+
+
+![Toast message](Screenshots/Assignment3/task4_1.png)
+
+--- 
+
+![Toast message](Screenshots/Assignment3/task4_2.png)
+
+--- 
+
+![Toast message](Screenshots/Assignment3/task4.png)
+
+
+### 5. Baseline: Run a Chrome Lighthouse performance audit. Record the score. Screenshot the initial bundle sizes from the Network tab. Document in PERFORMANCE.md.
+

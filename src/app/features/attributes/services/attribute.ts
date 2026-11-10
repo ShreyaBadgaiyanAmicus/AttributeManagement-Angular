@@ -1,6 +1,6 @@
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { Observable, map, tap } from 'rxjs';
 
@@ -12,6 +12,11 @@ import { StoreService } from '../../../core/services/store';
 import { ActivityLogService } from '../../../core/services/activity-log';
 
 import { environment } from '../../../../environments/environment';
+
+export interface PagedAttributes {
+  items: IAttribute[];
+  totalRecords: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -34,6 +39,38 @@ export class AttributeService {
       tap(attributes => {
         this.store.setAttributes(attributes);
       })
+    );
+  }
+
+  // GET: Fetch paginated and sorted attributes from the API
+  getPagedAttributes(
+    page: number,
+    pageSize: number,
+    sortField: string,
+    sortDirection: 'asc' | 'desc',
+    searchTerm = ''
+  ): Observable<PagedAttributes> {
+
+    let params = new HttpParams()
+      .set('_page', page)
+      .set('_limit', pageSize)
+      .set('_sort', sortField)
+      .set('_order', sortDirection);
+
+    if (searchTerm.trim()) {
+      params = params.set('q', searchTerm.trim());
+    }
+
+    return this.http.get<AttributeDTO[]>(this.apiUrl, {
+      params,
+      observe: 'response'
+    }).pipe(
+      map(response => ({
+        items: (response.body ?? []).map(dto =>
+          this.mappingService.toAttribute(dto)
+        ),
+        totalRecords: Number(response.headers.get('X-Total-Count') ?? 0)
+      }))
     );
   }
 
@@ -104,7 +141,6 @@ export class AttributeService {
 
   // DELETE: Remove attribute
   deleteAttribute(id: number): Observable<void> {
-    // Capture the name before removing the attribute from the store
     const attribute = this.store.getState().attributes.find(
       item => item.attributeId === id
     );
