@@ -1,1 +1,270 @@
-<p>dashboard works!</p>
+
+<div class="dashboard">
+
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome to the Attribute Management Dashboard.</p>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  @if (summary$ | async; as summary) {
+
+    <div class="summary-cards">
+
+      <div class="summary-card total-card">
+        <div class="card-icon">▦</div>
+        <div>
+          <h3>Total Attributes</h3>
+          <p>{{ summary.total }}</p>
+        </div>
+      </div>
+
+      <div class="summary-card active-card">
+        <div class="card-icon">✓</div>
+        <div>
+          <h3>Active Attributes</h3>
+          <p>{{ summary.active }}</p>
+        </div>
+      </div>
+
+      <div class="summary-card inactive-card">
+        <div class="card-icon">○</div>
+        <div>
+          <h3>Inactive Attributes</h3>
+          <p>{{ summary.inactive }}</p>
+        </div>
+      </div>
+
+      <div class="summary-card created-card">
+        <div class="card-icon">+</div>
+        <div>
+          <h3>Created This Month</h3>
+          <p>{{ summary.createdThisMonth }}</p>
+        </div>
+      </div>
+
+    </div>
+
+  }
+
+  <!-- Business Unit Chart -->
+  <app-collapsible-section class="dashboard-section">
+
+    <div header class="section-header">
+      <div>
+        <h2>Attributes by Business Unit</h2>
+        <p>Attribute distribution across business units</p>
+      </div>
+    </div>
+
+    <div body>
+
+      @if (chart$ | async; as chart) {
+
+        @if (chart.items.length > 0) {
+
+          <div class="chart-container">
+
+            <svg
+              viewBox="0 0 700 300"
+              class="business-chart"
+              role="img"
+              aria-label="Bar chart showing attribute count per business unit"
+            >
+
+              <!-- Grid Lines and Y-axis Labels -->
+              @for (tick of chart.ticks; track tick.value) {
+
+                <line
+                  x1="65"
+                  [attr.y1]="tick.y"
+                  x2="665"
+                  [attr.y2]="tick.y"
+                  stroke="#e5e7eb"
+                  stroke-width="1"
+                />
+
+                <text
+                  x="50"
+                  [attr.y]="tick.y + 4"
+                  text-anchor="end"
+                  font-size="12"
+                  fill="#64748b"
+                >
+                  {{ tick.value }}
+                </text>
+
+              }
+
+              <!-- Axes -->
+              <line
+                x1="65"
+                y1="20"
+                x2="65"
+                y2="240"
+                stroke="#64748b"
+                stroke-width="1.5"
+              />
+
+              <line
+                x1="65"
+                y1="240"
+                x2="665"
+                y2="240"
+                stroke="#64748b"
+                stroke-width="1.5"
+              />
+
+              <!-- Bars -->
+              @for (item of chart.items; track item.name) {
+
+                <rect
+                  [attr.x]="item.x"
+                  [attr.y]="item.y"
+                  [attr.width]="item.width"
+                  [attr.height]="item.height"
+                  rx="5"
+                  fill="#3b82f6"
+                >
+                  <title>
+                    {{ item.name }}: {{ item.count }} attributes
+                  </title>
+                </rect>
+
+                <!-- Count -->
+                <text
+                  [attr.x]="item.labelX"
+                  [attr.y]="item.y - 8"
+                  text-anchor="middle"
+                  font-size="13"
+                  font-weight="bold"
+                  fill="#1e293b"
+                >
+                  {{ item.count }}
+                </text>
+
+                <!-- Business Unit Name -->
+                <text
+                  [attr.x]="item.labelX"
+                  y="260"
+                  text-anchor="middle"
+                  font-size="11"
+                  fill="#475569"
+                >
+                  {{ item.name.length > 12
+                    ? item.name.substring(0, 12) + '...'
+                    : item.name }}
+                </text>
+
+              }
+
+            </svg>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            <p>No attribute data available for the chart.</p>
+          </div>
+
+        }
+
+      }
+
+    </div>
+
+  </app-collapsible-section>
+
+  <!-- Recent Activity -->
+  <app-collapsible-section class="dashboard-section">
+
+    <div header class="section-header">
+      <div>
+        <h2>Recent Activity</h2>
+        <p>Latest 10 attribute activities</p>
+      </div>
+
+      <span class="activity-count">Last 10</span>
+    </div>
+
+    <div body>
+
+      @if (activities$ | async; as activities) {
+
+        @if (activities.length > 0) {
+
+          <div class="activity-list">
+
+            @for (activity of activities; track activity.id) {
+
+              <div class="activity-item">
+
+                <div
+                  class="activity-icon"
+                  [class.create-icon]="activity.action === 'create'"
+                  [class.edit-icon]="activity.action === 'edit'"
+                  [class.delete-icon]="activity.action === 'delete'"
+                >
+                  @switch (activity.action) {
+                    @case ('create') {
+                      +
+                    }
+                    @case ('edit') {
+                      ✎
+                    }
+                    @case ('delete') {
+                      ×
+                    }
+                  }
+                </div>
+
+                <div class="activity-details">
+
+                  <strong>
+                    @switch (activity.action) {
+                      @case ('create') {
+                        Attribute Created
+                      }
+                      @case ('edit') {
+                        Attribute Edited
+                      }
+                      @case ('delete') {
+                        Attribute Deleted
+                      }
+                    }
+                  </strong>
+
+                  <span>{{ activity.attributeName }}</span>
+
+                </div>
+
+                <small>
+                  {{ activity.timestamp | date:'dd MMM yyyy, h:mm a' }}
+                </small>
+
+              </div>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state">
+            <p>No recent activity available.</p>
+            <span>Create, edit or delete an attribute to see activity here.</span>
+          </div>
+
+        }
+
+      }
+
+    </div>
+
+  </app-collapsible-section>
+
+</div>

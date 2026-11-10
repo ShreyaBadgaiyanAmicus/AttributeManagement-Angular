@@ -1,0 +1,28 @@
+
+<section class="collapsible-section">
+
+  <div class="collapsible-header">
+
+    <div class="header-content">
+      <ng-content select="[header]"></ng-content>
+    </div>
+
+    <button
+      type="button"
+      class="toggle-button"
+      (click)="toggle()"
+      [attr.aria-expanded]="!isCollapsed"
+      aria-label="Toggle section"
+    >
+      {{ isCollapsed ? '+' : '−' }}
+    </button>
+
+  </div>
+
+  @if (!isCollapsed) {
+    <div class="collapsible-body">
+      <ng-content select="[body]"></ng-content>
+    </div>
+  }
+
+</section>

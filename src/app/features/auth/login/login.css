@@ -14,6 +14,12 @@
     radial-gradient(circle at 90% 85%, #bfdbfe 0, transparent 30%),
     #f1f5f9;
   box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #1e293b;
+}
+
+.login-page * {
+  box-sizing: border-box;
 }
 
 .login-card {

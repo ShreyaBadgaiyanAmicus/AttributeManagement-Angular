@@ -9,6 +9,7 @@ import { AttributeDTO } from '../dtos/attribute.dto';
 
 import { MappingService } from './mapping';
 import { StoreService } from '../../../core/services/store';
+import { ActivityLogService } from '../../../core/services/activity-log';
 
 import { environment } from '../../../../environments/environment';
 
@@ -20,6 +21,7 @@ export class AttributeService {
   private http = inject(HttpClient);
   private mappingService = inject(MappingService);
   private store = inject(StoreService);
+  private activityLog = inject(ActivityLogService);
 
   private apiUrl = `${environment.apiBaseUrl}/attributes`;
 
@@ -66,6 +68,11 @@ export class AttributeService {
       ),
       tap(savedAttribute => {
         this.store.addAttribute(savedAttribute);
+
+        this.activityLog.logActivity('create', {
+          attributeId: savedAttribute.attributeId,
+          attributeName: savedAttribute.attributeName
+        });
       })
     );
   }
@@ -86,15 +93,30 @@ export class AttributeService {
       ),
       tap(savedAttribute => {
         this.store.updateAttribute(savedAttribute);
+
+        this.activityLog.logActivity('edit', {
+          attributeId: savedAttribute.attributeId,
+          attributeName: savedAttribute.attributeName
+        });
       })
     );
   }
 
   // DELETE: Remove attribute
   deleteAttribute(id: number): Observable<void> {
+    // Capture the name before removing the attribute from the store
+    const attribute = this.store.getState().attributes.find(
+      item => item.attributeId === id
+    );
+
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
         this.store.removeAttribute(id);
+
+        this.activityLog.logActivity('delete', {
+          attributeId: id,
+          attributeName: attribute?.attributeName ?? 'Unknown Attribute'
+        });
       })
     );
   }

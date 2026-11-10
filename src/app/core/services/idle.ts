@@ -29,8 +29,8 @@ export class IdleService {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
-//   private readonly idleTimeout = 10 * 60 * 1000;
-private readonly idleTimeout = 10 * 1000;
+  private readonly idleTimeout = 10 * 60 * 1000;
+// private readonly idleTimeout = 10 * 1000;
   private started = false;
 
   startWatching(): void {

@@ -2030,3 +2030,31 @@ export class LoaderComponent {
    • Protect /attributes/add route with a RoleGuard (only Admin). If Viewer navigates to it directly via URL, redirect with a "Access denied" toast message.
    • Implement auto-logout after 10 minutes of inactivity: build an IdleService that tracks mouse/keyboard activity using RxJS (fromEvent, merge, switchMap, timer). On timeout, clear auth state and redirect to login.
 
+![Toast message](Screenshots/Assignment3/task1.png)
+![Toast message](Screenshots/Assignment3/task1_2.png)
+
+
+### 2. Add a user profile section in the header showing: logged-in username, role badge (styled with your appActiveStatus-style directive), and a logout button.
+
+
+![Toast message](Screenshots/Assignment3/task2.png)
+
+
+### 3. Build the Dashboard (placeholder from Assignment 2) with:
+   • Summary cards: Total Attributes, Active Attributes, Inactive Attributes, Attributes Created This Month
+   • A bar chart showing attribute count per Business Unit — build using SVG or Canvas. NO chart libraries (no Chart.js, no ng2-charts). You must draw the bars, labels, and axes yourself.
+   • A recent activity widget showing last 10 create/edit/delete actions (create an ActivityLogService using ReplaySubject(10))
+   • All dashboard data must reactively update when attributes change elsewhere in the app.
+
+![Toast message](Screenshots/Assignment3/task3_1.png)
+
+--- 
+
+![Toast message](Screenshots/Assignment3/task3.png)
+
+
+### 4. Create reusable UI components using content projection (ng-content):
+   • CardWrapperComponent: provides consistent card styling (shadow, border, padding), consumer projects any content inside
+   • CollapsibleSectionComponent: named slots for header and body (<ng-content select="[header]"> and <ng-content select="[body]">). Use it on Dashboard for each widget.
+   • ConfirmDialogComponent: a modal dialog for delete confirmations. Built from scratch, no third-party.
+   • DataTableComponent: a reusable sortable, paginated table. Refactor AttributeListComponent's table view to use this. Sorting and pagination must work with the API (pass sort/page params) not just client-side.
