@@ -5,6 +5,7 @@ import {
   Component,
   OnInit,
   DestroyRef,
+  ChangeDetectionStrategy,
   inject
 } from '@angular/core';
 
@@ -40,6 +41,7 @@ import { ToastService } from '../../../../core/services/toast.service';
     AsyncPipe,
     ReactiveFormsModule
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './add-attribute.html',
   styleUrl: './add-attribute.css'
 })
@@ -129,7 +131,6 @@ export class AddAttributeComponent implements OnInit {
     }
   }
 
-  // Navigate back to Attribute List
   onCancel(): void {
     this.router.navigate(['/attributes']);
   }

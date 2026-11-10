@@ -1,98 +1,152 @@
 
 <div class="data-table-container">
   <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          @for (column of columns; track column.key) {
-            <th
-              [class.sortable]="column.sortable"
-              [attr.aria-sort]="
-                sortField === column.key
-                  ? (sortDirection === 'asc' ? 'ascending' : 'descending')
-                  : 'none'
-              "
-              (click)="onSort(column)"
-            >
-              {{ column.label }}
 
-              @if (column.sortable) {
-                <span class="sort-icon">
-                  @if (sortField === column.key) {
-                    {{ sortDirection === 'asc' ? '↑' : '↓' }}
-                  } @else {
-                    ↕
-                  }
-                </span>
-              }
-            </th>
-          }
-        </tr>
-      </thead>
+    <div class="virtual-table">
 
-      <tbody>
-        @if (data.length > 0) {
-          @for (row of data; track $index) {
-            <tr>
-              @for (column of columns; track column.key) {
-                <td>
-                  @if (cellTemplates[column.key]; as cellTemplate) {
-                    <ng-container
-                      [ngTemplateOutlet]="cellTemplate"
-                      [ngTemplateOutletContext]="{ $implicit: row }"
-                    />
-                  } @else {
-                    {{ getCellValue(row, column.key) }}
-                  }
-                </td>
-              }
-            </tr>
-          }
-        } @else {
-          <tr>
-            <td
-              [attr.colspan]="columns.length"
-              class="empty-message"
-            >
-              No records found.
-            </td>
-          </tr>
+      <!-- Shared table header -->
+      <div
+        class="virtual-header"
+        role="row"
+        [style.grid-template-columns]="'repeat(' + columns.length + ', minmax(150px, 1fr))'"
+      >
+        @for (column of columns; track column.key) {
+          <div
+            class="virtual-header-cell"
+            role="columnheader"
+            [class.sortable]="column.sortable"
+            [attr.aria-sort]="
+              sortField === column.key
+                ? (sortDirection === 'asc' ? 'ascending' : 'descending')
+                : 'none'
+            "
+            (click)="onSort(column)"
+          >
+            {{ column.label }}
+
+            @if (column.sortable) {
+              <span class="sort-icon">
+                @if (sortField === column.key) {
+                  {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                } @else {
+                  ↕
+                }
+              </span>
+            }
+          </div>
         }
-      </tbody>
-    </table>
-  </div>
+      </div>
 
-  <div class="pagination">
-    <span class="page-info">
-      Showing
-      {{ totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}
-      to
-      {{ currentPage * pageSize > totalRecords
-        ? totalRecords
-        : currentPage * pageSize }}
-      of {{ totalRecords }} records
-    </span>
+      <!-- Virtual scrolling for more than 50 records -->
+      @if (useVirtualScroll) {
 
-    <div class="pagination-controls">
-      <button
-        type="button"
-        [disabled]="currentPage <= 1"
-        (click)="goToPage(currentPage - 1)"
-      >
-        Previous
-      </button>
+        <cdk-virtual-scroll-viewport
+          class="virtual-scroll-viewport"
+          [itemSize]="48"
+          [minBufferPx]="120"
+          [maxBufferPx]="240"
+        >
+          <div
+            *cdkVirtualFor="
+              let row of data;
+              trackBy: trackByFn;
+              templateCacheSize: 20
+            "
+            class="virtual-row"
+            role="row"
+            [style.grid-template-columns]="'repeat(' + columns.length + ', minmax(150px, 1fr))'"
+          >
+            @for (column of columns; track column.key) {
+              <div class="virtual-cell" role="cell">
+                @if (cellTemplates[column.key]; as cellTemplate) {
+                  <ng-container
+                    [ngTemplateOutlet]="cellTemplate"
+                    [ngTemplateOutletContext]="{ $implicit: row }"
+                  />
+                } @else {
+                  {{ getCellValue(row, column.key) }}
+                }
+              </div>
+            }
+          </div>
+        </cdk-virtual-scroll-viewport>
 
-      <span class="current-page">
-        Page {{ currentPage }} of {{ totalPages }}
-      </span>
+      } @else {
 
-      <button
-        type="button"
-        [disabled]="currentPage >= totalPages || totalPages === 0"
-        (click)="goToPage(currentPage + 1)"
-      >
-        Next
-      </button>
+        <!-- Normal rendering: 50 or fewer records -->
+        <div class="normal-rows">
+
+          @if (data.length > 0) {
+            @for (row of data; track trackByFn($index, row)) {
+              <div
+                class="virtual-row"
+                role="row"
+                [style.grid-template-columns]="'repeat(' + columns.length + ', minmax(150px, 1fr))'"
+              >
+                @for (column of columns; track column.key) {
+                  <div class="virtual-cell" role="cell">
+                    @if (cellTemplates[column.key]; as cellTemplate) {
+                      <ng-container
+                        [ngTemplateOutlet]="cellTemplate"
+                        [ngTemplateOutletContext]="{ $implicit: row }"
+                      />
+                    } @else {
+                      {{ getCellValue(row, column.key) }}
+                    }
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <div class="empty-message">
+              No records found.
+            </div>
+          }
+
+        </div>
+      }
+
     </div>
   </div>
+
+  <!-- Pagination hidden during virtual scrolling -->
+  @if (!useVirtualScroll) {
+    <div class="pagination">
+
+      <span class="page-info">
+        Showing
+        {{ totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}
+        to
+        {{ currentPage * pageSize > totalRecords
+          ? totalRecords
+          : currentPage * pageSize }}
+        of {{ totalRecords }} records
+      </span>
+
+      <div class="pagination-controls">
+
+        <button
+          type="button"
+          [disabled]="currentPage <= 1"
+          (click)="goToPage(currentPage - 1)"
+        >
+          Previous
+        </button>
+
+        <span class="current-page">
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+
+        <button
+          type="button"
+          [disabled]="currentPage >= totalPages || totalPages === 0"
+          (click)="goToPage(currentPage + 1)"
+        >
+          Next
+        </button>
+
+      </div>
+    </div>
+  }
+
 </div>

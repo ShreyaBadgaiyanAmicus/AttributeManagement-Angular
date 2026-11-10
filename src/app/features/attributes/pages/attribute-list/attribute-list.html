@@ -42,9 +42,27 @@
 
         <!-- Attribute Actions -->
         <div class="header-actions">
+
           <span class="record-count">
-            Total Attributes: {{ attributes.length }}
+            Total Attributes: {{ tableData.length }}
           </span>
+
+          <button
+            type="button"
+            (click)="refreshAttributes()"
+            [disabled]="isSearching"
+          >
+            Refresh
+          </button>
+
+          <button
+            type="button"
+            (click)="toggleMockData()"
+          >
+            {{ showMockData
+              ? 'Hide Mock Records'
+              : 'Generate 200 Mock Records' }}
+          </button>
 
           @if (isAdmin) {
             <button
@@ -54,6 +72,7 @@
               + Add Attribute
             </button>
           }
+
         </div>
 
       </div>
@@ -136,7 +155,8 @@
       <!-- Reusable Data Table -->
       <app-data-table
         [columns]="columns"
-        [data]="pagedAttributes"
+        [data]="tableData"
+        [trackByFn]="trackAttributeById"
         [cellTemplates]="{
           isActive: statusTemplate,
           createdOn: createdOnTemplate,
@@ -144,7 +164,9 @@
         }"
         [currentPage]="currentPage"
         [pageSize]="pageSize"
-        [totalRecords]="totalRecords"
+        [totalRecords]="tableData.length > 50
+          ? tableData.length
+          : totalRecords"
         [sortField]="sortField"
         [sortDirection]="sortDirection"
         (sortChange)="onSortChange($event)"

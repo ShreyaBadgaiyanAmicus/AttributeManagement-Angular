@@ -3,6 +3,7 @@ import {
   Component,
   ChangeDetectorRef,
   DestroyRef,
+  ChangeDetectionStrategy,
   inject
 } from '@angular/core';
 
@@ -59,6 +60,7 @@ import {
     ConfirmDialog,
     DataTable
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './attribute-list.html',
   styleUrl: './attribute-list.css'
 })
@@ -105,9 +107,25 @@ export class AttributeListComponent {
   pageSize = 10;
   totalRecords = 0;
 
+  // Virtual scrolling demo data
+  showMockData = false;
+
+  private currentAttributes: IAttribute[] = [];
+
+  tableData: IAttribute[] = [];
+
+  private readonly mockAttributes: IAttribute[] =
+    this.generateMockAttributes();
+
   // Server-side sorting state
   sortField = 'attribute_id';
   sortDirection: 'asc' | 'desc' = 'asc';
+
+  // Track table rows using their unique Attribute ID
+  trackAttributeById = (
+    _index: number,
+    attribute: IAttribute
+  ): number => attribute.attributeId;
 
   // Table column configuration
   columns: TableColumn[] = [
@@ -190,6 +208,14 @@ export class AttributeListComponent {
     private toastService: ToastService,
     private cdr: ChangeDetectorRef
   ) {
+    // Keep the table collection synchronized with Store
+    this.attributes$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(attributes => {
+        this.currentAttributes = attributes;
+        this.updateTableData();
+      });
+
     this.loadAllAttributes();
     this.setupSearch();
   }
@@ -199,6 +225,78 @@ export class AttributeListComponent {
     return this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value)
     );
+  }
+
+  // Generate 200 mock attributes for virtual scrolling demonstration
+  private generateMockAttributes(): IAttribute[] {
+    const businessUnits = [
+      'Administration',
+      'Sales',
+      'Technology'
+    ];
+
+    const locations = [
+      'Mumbai',
+      'Chennai',
+      'Pune'
+    ];
+
+    const companies = [
+      'Amicus',
+      'GlobalWorks',
+      'TechNova'
+    ];
+
+    return Array.from({ length: 200 }, (_, index) => {
+      const id = 1001 + index;
+
+      return {
+        attributeId: id,
+        attributeName: `Mock Attribute ${index + 1}`,
+
+        businessUnitId: (index % 3) + 1,
+        businessUnitName: businessUnits[index % 3],
+
+        customerLocationId: (index % 3) + 1,
+        customerLocationName: locations[index % 3],
+
+        companyId: (index % 3) + 1,
+        companyName: companies[index % 3],
+
+        isActive: index % 2 === 0,
+
+        createdOn: new Date(
+          Date.now() - index * 24 * 60 * 60 * 1000
+        ),
+
+        createdBy: 'Mock User',
+
+        updatedOn: null,
+        updatedBy: null
+      };
+    });
+  }
+
+  // Update the collection displayed in Table View
+  private updateTableData(): void {
+    if (this.showMockData) {
+      this.tableData = [
+        ...this.currentAttributes,
+        ...this.mockAttributes
+      ];
+    } else if (this.currentAttributes.length > 50) {
+      this.tableData = this.currentAttributes;
+    } else {
+      this.tableData = this.pagedAttributes;
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  // Switch between API data and mock data
+  toggleMockData(): void {
+    this.showMockData = !this.showMockData;
+    this.updateTableData();
   }
 
   // Load complete collection into Store
@@ -258,6 +356,11 @@ export class AttributeListComponent {
     ).subscribe(result => {
       this.pagedAttributes = result.items;
       this.totalRecords = result.totalRecords;
+
+      if (!this.showMockData && this.currentAttributes.length <= 50) {
+        this.tableData = this.pagedAttributes;
+      }
+
       this.isSearching = false;
       this.cdr.markForCheck();
     });
@@ -266,6 +369,7 @@ export class AttributeListComponent {
   // Load a requested page from the API
   loadPagedAttributes(): void {
     this.isSearching = true;
+    this.cdr.markForCheck();
 
     this.attributeService.getPagedAttributes(
       this.currentPage,
@@ -292,9 +396,20 @@ export class AttributeListComponent {
     ).subscribe(result => {
       this.pagedAttributes = result.items;
       this.totalRecords = result.totalRecords;
+
+      if (!this.showMockData && this.currentAttributes.length <= 50) {
+        this.tableData = this.pagedAttributes;
+      }
+
       this.isSearching = false;
       this.cdr.markForCheck();
     });
+  }
+
+  // Refresh complete collection and current table page
+  refreshAttributes(): void {
+    this.loadAllAttributes();
+    this.loadPagedAttributes();
   }
 
   // Handle sorting from DataTable
@@ -364,6 +479,7 @@ export class AttributeListComponent {
             'Attribute deleted successfully.'
           );
 
+          this.loadAllAttributes();
           this.loadPagedAttributes();
         },
         error: error => {

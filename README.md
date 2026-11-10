@@ -2073,3 +2073,157 @@ export class LoaderComponent {
 
 ### 5. Baseline: Run a Chrome Lighthouse performance audit. Record the score. Screenshot the initial bundle sizes from the Network tab. Document in PERFORMANCE.md.
 
+![Toast message](Screenshots/Assignment3/task5_1.png)
+
+--- 
+
+![Toast message](Screenshots/Assignment3/task5_2.png)
+
+
+### 6. Switch ALL components to ChangeDetectionStrategy.OnPush. Some will break. For each broken component:
+   • Document WHAT broke and WHY
+   • Fix using the correct approach (immutable update, markForCheck(), async pipe — not by switching back to Default)
+   • Explain why your fix works with OnPush
+
+   ### Change Detection Optimization
+
+- Applied `ChangeDetectionStrategy.OnPush` to all 14 components.
+- Used `AsyncPipe`, Angular Signals, immutable updates, and `ChangeDetectorRef.markForCheck()` where required.
+- Verified component functionality after the changes.
+- Successfully built the application using `ng build`.
+
+For implementation details, testing, and change detection explanations, see [CHANGE_DETECTION.md](./CHANGE_DETECTION.md).
+
+
+### 7. Add trackBy to every *ngFor. Create a test: Add a "Refresh" button that reloads attributes from API. Without trackBy, observe all DOM nodes are recreated. With trackBy, only changed nodes update. Document the difference.
+
+# Angular TrackBy and DOM Reuse
+
+## 1. Overview
+
+Angular uses tracking to identify items in a collection and efficiently update the DOM when the collection changes.
+
+This project uses Angular's modern `@for` syntax instead of the older `*ngFor` directive.
+
+The `track` expression identifies each item using a unique and stable key.
+
+## 2. Tracking in This Project
+
+All `@for` loops use tracking expressions.
+
+Examples:
+
+- Attributes: `track attribute.attributeId`
+- Business Units: `track unit.businessId`
+- Customer Locations: `track location.customerLocationId`
+- Companies: `track company.companyId`
+- Dashboard activities: `track activity.id`
+
+The reusable DataTable accepts a tracking function from its parent component.
+
+```typescript
+trackAttributeById = (
+  _index: number,
+  attribute: IAttribute
+): number => attribute.attributeId;
+```
+
+The function is passed to the DataTable:
+
+```html
+<app-data-table
+  [data]="pagedAttributes"
+  [trackByFn]="trackAttributeById"
+/>
+```
+
+The DataTable uses it in its `@for` loop:
+
+```html
+@for (row of data; track trackByFn($index, row)) {
+  <tr>
+    ...
+  </tr>
+}
+```
+
+## 3. Refresh API Test
+
+A Refresh button was added to reload attributes from the API.
+
+```typescript
+refreshAttributes(): void {
+  this.loadAllAttributes();
+  this.loadPagedAttributes();
+}
+```
+
+This returns fresh JavaScript objects from the API, allowing DOM reuse to be tested.
+
+## 4. Without Stable ID Tracking
+
+For the first test, the tracking function returned the object itself:
+
+```typescript
+trackAttributeById = (
+  _index: number,
+  attribute: IAttribute
+): IAttribute => attribute;
+```
+
+Angular compared object references to identify rows.
+
+Since an API refresh creates new object instances, Angular treated the refreshed objects as different items and recreated the corresponding table row DOM nodes.
+
+## 5. With Stable ID Tracking
+
+For the second test, the tracking function returned the unique attribute ID:
+
+```typescript
+trackAttributeById = (
+  _index: number,
+  attribute: IAttribute
+): number => attribute.attributeId;
+```
+
+Angular identified rows using their unique IDs.
+
+After refreshing the API data, Angular reused existing DOM nodes for records whose IDs remained unchanged. Only necessary DOM updates were performed.
+
+## 6. DOM Verification
+
+Chrome DevTools Console was used to compare table row references before and after refreshing.
+
+```javascript
+window.beforeRows = [
+  ...document.querySelectorAll('app-data-table tbody tr')
+];
+```
+
+After clicking Refresh:
+
+```javascript
+window.afterRows = [
+  ...document.querySelectorAll('app-data-table tbody tr')
+];
+
+console.table(
+  window.beforeRows.map((row, index) => ({
+    index,
+    sameNode: row === window.afterRows[index]
+  }))
+);
+```
+
+### Observations
+
+| Tracking approach | Expected DOM behavior |
+|---|---|
+| Object identity | Existing rows are recreated after API refresh |
+| Stable attribute ID | Existing rows are reused |
+
+## 7. Conclusion
+
+Stable tracking improves rendering efficiency by allowing Angular to identify items using unique keys rather than object references.
+
+It reduces unnecessary DOM recreation and is especially useful when working with API data, lists, tables, and frequently refreshed collections.

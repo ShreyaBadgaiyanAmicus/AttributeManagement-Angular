@@ -4,10 +4,14 @@ import {
   Input,
   Output,
   EventEmitter,
-  TemplateRef
+  TemplateRef,
+  ChangeDetectionStrategy,
+  TrackByFunction
 } from '@angular/core';
 
 import { NgTemplateOutlet } from '@angular/common';
+
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 export interface TableColumn {
   key: string;
@@ -19,7 +23,11 @@ export interface TableColumn {
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [NgTemplateOutlet],
+  imports: [
+    NgTemplateOutlet,
+    ScrollingModule,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-table.html',
   styleUrl: './data-table.css'
 })
@@ -39,6 +47,15 @@ export class DataTable<T extends object = Record<string, unknown>> {
 
   @Input() sortField = '';
   @Input() sortDirection: 'asc' | 'desc' = 'asc';
+
+  // Allows the parent to provide a stable identity for each row.
+  @Input() trackByFn: TrackByFunction<T> =
+    (_index, item) => item;
+
+  // Enable virtual scrolling when the collection exceeds 50 records.
+  get useVirtualScroll(): boolean {
+    return this.data.length > 50;
+  }
 
   @Output() sortChange = new EventEmitter<{
     field: string;

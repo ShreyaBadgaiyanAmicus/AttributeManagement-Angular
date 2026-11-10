@@ -1,23 +1,27 @@
+
 import {
   Component,
   Input,
   OnInit,
   OnChanges,
   OnDestroy,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
-import { DatePipe } from '@angular/common';
 import { IAttribute } from '../../models/attribute.model';
 import { RelativeTimePipe } from '../../../../shared/pipes/relative-time-pipe';
 
 @Component({
   selector: 'app-attribute-card',
-  imports: [DatePipe,RelativeTimePipe],
+  standalone: true,
+  imports: [RelativeTimePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './attribute-card.html',
   styleUrl: './attribute-card.css'
 })
 export class AttributeCardComponent implements OnInit, OnChanges, OnDestroy {
+
   @Input({ required: true }) attribute!: IAttribute;
 
   ngOnChanges(changes: SimpleChanges): void {

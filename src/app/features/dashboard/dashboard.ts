@@ -1,6 +1,7 @@
 
 import {
   Component,
+  ChangeDetectionStrategy,
   inject,
   OnInit,
   DestroyRef
@@ -45,6 +46,7 @@ interface ChartTick {
     DatePipe,
     CollapsibleSection
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })

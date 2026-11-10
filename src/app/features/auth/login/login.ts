@@ -1,5 +1,10 @@
 
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -10,6 +15,7 @@ import { UserRole } from '../../../core/services/store';
   selector: 'app-login',
   standalone: true,
   imports: [FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
   styleUrl: './login.css'
 })

@@ -1,24 +1,20 @@
-.data-table-container {
+
+.virtual-table {
   width: 100%;
+  min-width: max-content;
 }
 
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  white-space: nowrap;
-}
-
-thead {
+/* Shared table header */
+.virtual-header {
+  display: grid;
+  min-width: 100%;
   background: #f8fafc;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-th {
+.virtual-header-cell {
   padding: 14px 16px;
   color: #475569;
   font-size: 12px;
@@ -26,14 +22,15 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
 
-th.sortable {
+.virtual-header-cell.sortable {
   cursor: pointer;
   user-select: none;
 }
 
-th.sortable:hover {
+.virtual-header-cell.sortable:hover {
   color: #2563eb;
   background: #f1f5f9;
 }
@@ -43,77 +40,44 @@ th.sortable:hover {
   color: #64748b;
 }
 
-td {
-  padding: 14px 16px;
+/* Normal and virtual rows share identical styling */
+.normal-rows {
+  width: 100%;
+}
+
+.virtual-row {
+  display: grid;
+  min-width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+}
+
+.virtual-cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 16px;
   color: #334155;
   font-size: 13px;
   border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-tbody tr:hover {
+.virtual-row:hover {
   background: #f8fafc;
 }
 
+/* CDK viewport */
+.virtual-scroll-viewport {
+  height: 500px;
+  width: 100%;
+}
+
+/* Empty state */
 .empty-message {
   padding: 30px 16px;
   text-align: center;
   color: #64748b;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 0 0;
-}
-
-.page-info {
-  color: #64748b;
-  font-size: 12px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.pagination-controls button {
-  padding: 7px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #fff;
-  color: #334155;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.pagination-controls button:hover:not(:disabled) {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #2563eb;
-}
-
-.pagination-controls button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.current-page {
-  color: #475569;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-@media (max-width: 600px) {
-  .pagination {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .pagination-controls {
-    width: 100%;
-    justify-content: space-between;
-  }
 }

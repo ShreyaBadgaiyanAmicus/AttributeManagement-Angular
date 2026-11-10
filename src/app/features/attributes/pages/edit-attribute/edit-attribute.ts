@@ -6,6 +6,8 @@ import {
   Input,
   OnInit,
   DestroyRef,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
   inject
 } from '@angular/core';
 
@@ -31,6 +33,7 @@ import { ToastService } from '../../../../core/services/toast.service';
     AsyncPipe,
     FormsModule
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './edit-attribute.html',
   styleUrl: './edit-attribute.css'
 })
@@ -51,7 +54,10 @@ export class EditAttributeComponent implements OnInit {
 
   customerLocations: ICustomerLocation[] = [];
 
-  constructor(private lookupService: LookupService) {}
+  constructor(
+    private lookupService: LookupService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.originalAttribute = { ...this.attribute };
@@ -65,6 +71,8 @@ export class EditAttributeComponent implements OnInit {
           lookups.customerLocations,
           this.editedAttribute.businessUnitId
         );
+
+        this.cdr.markForCheck();
       });
 
     // Load only lookup data that is not already in the Store.
@@ -168,6 +176,8 @@ export class EditAttributeComponent implements OnInit {
         // Update the original copy only after a successful save.
         this.originalAttribute = { ...updatedAttribute };
         this.editedAttribute = { ...updatedAttribute };
+
+        this.cdr.markForCheck();
 
         this.toastService.showSuccess(
           'Attribute updated successfully!'
