@@ -2383,3 +2383,27 @@ The investigation confirms that the application already has a sound lazy-loading
    • Logs to an ErrorLogService (in-memory, viewable on an /admin/errors route — Admin only)
    • User-friendly messages via ToastService (never expose stack traces)
    • HTTP error categorization: 400="Invalid request", 401="Please log in", 403="Access denied", 404="Not found", 500+="Server error, try again"
+
+![Mock data](Screenshots/Assignment3/task10.png)
+
+---
+
+![Mock data](Screenshots/Assignment3/task10_2.png)
+
+
+### 11. Enable strict TypeScript in tsconfig.json (strict: true, noImplicitAny: true, strictNullChecks: true). Fix ALL compilation errors WITHOUT using 'any' or non-null assertions (!). Document the 5 hardest errors and how you resolved them in STRICT-MODE.md.
+
+```json
+"strict": true,
+"noImplicitAny": true,
+"strictNullChecks": true
+```
+
+
+### 12. Code Review Exercise: The trainer will provide a deliberately poorly-written Angular component (~120 lines) containing at least 12 issues: naming violations, subscription leaks, logic in templates, hardcoded values, missing types, nested subscribes, manual DOM manipulation, no error handling, etc. Identify ALL issues, categorize them, and rewrite the component.
+
+
+### 13. 13. Self-Audit: Review your own codebase from Assignments 1–3. Write SELF-AUDIT.md:
+   • 5 things you did well (with file/line references)
+   • 5 things you would improve (with what the fix would be)
+   • Apply the top 3 improvements to your actual code

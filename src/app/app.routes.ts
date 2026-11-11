@@ -1,4 +1,6 @@
+
 import { Routes } from '@angular/router';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -14,16 +16,23 @@ export const routes: Routes = [
         .then(m => m.DashboardComponent)
   },
   {
+    path: 'admin/errors',
+    canActivate: [roleGuard],
+    loadComponent: () =>
+      import('./features/admin/errors/errors')
+        .then(m => m.ErrorsComponent)
+  },
+  {
     path: '',
     redirectTo: 'attributes',
     pathMatch: 'full'
   },
   {
-  path: 'login',
-  loadComponent: () =>
-    import('./features/auth/login/login')
-      .then(m => m.LoginComponent)
-},
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/login/login')
+        .then(m => m.LoginComponent)
+  },
   {
     path: '**',
     loadComponent: () =>

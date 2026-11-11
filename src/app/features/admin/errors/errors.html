@@ -1,0 +1,64 @@
+
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <h1>Error Logs</h1>
+      <p>Review application and HTTP errors.</p>
+    </div>
+
+    <button
+      type="button"
+      class="clear-button"
+      (click)="clearErrors()"
+      [disabled]="errors().length === 0">
+      Clear Logs
+    </button>
+    <button
+  type="button"
+  class="clear-button"
+  (click)="testHttpError()">
+  Test HTTP 404
+</button>
+
+<button
+  type="button"
+  class="clear-button"
+  (click)="testGlobalError()">
+  Test Global Error
+</button>
+  </div>
+
+  <div class="error-summary">
+    <strong>Total Errors:</strong> {{ errors().length }}
+  </div>
+
+  @if (errors().length > 0) {
+    <div class="error-list">
+
+      @for (error of errors(); track error.id) {
+        <div class="error-card">
+
+          <div class="error-card-header">
+            <strong>Error #{{ error.id }}</strong>
+            <span>{{ error.timestamp | date:'medium' }}</span>
+          </div>
+
+          <p class="error-message">{{ error.message }}</p>
+
+          <div class="error-source">
+            <strong>Source:</strong> {{ error.source }}
+          </div>
+
+        </div>
+      }
+
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No errors found</h3>
+      <p>There are currently no logged application errors.</p>
+    </div>
+  }
+
+</div>
