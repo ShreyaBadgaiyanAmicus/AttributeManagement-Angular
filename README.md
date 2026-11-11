@@ -2227,3 +2227,159 @@ console.table(
 Stable tracking improves rendering efficiency by allowing Angular to identify items using unique keys rather than object references.
 
 It reduces unnecessary DOM recreation and is especially useful when working with API data, lists, tables, and frequently refreshed collections.
+
+
+### 8. If attribute count exceeds 50 rows, implement virtual scrolling using Angular CDK VirtualScrollViewport. Generate 200+ mock attributes and demonstrate that only ~15–20 DOM nodes exist regardless of list size.
+
+![Mock data](Screenshots/Assignment3/task8.png)
+
+
+### 9. Run ng build --stats-json. Analyze with webpack-bundle-analyzer. Identify the 3 largest modules. Apply at least one optimization (tree-shake unused imports, check barrel imports, verify lazy loading). Document before/after sizes.
+
+![Mock data](Screenshots/Assignment3/task9_1.png)
+
+--- 
+
+![Mock data](Screenshots/Assignment3/task9_2.png)
+
+
+# Bundle Analysis and Optimization
+
+## 1. Objective
+
+Analyze the Angular application's production bundle, identify the three largest modules, review optimization opportunities, and evaluate bundle sizes.
+
+## 2. Build and Analysis
+
+Executed the production build with:
+
+```bash
+ng build --stats-json
+```
+
+Angular 22 uses the `@angular/build:application` builder, which is based on **esbuild**, not Webpack.
+
+The build generated the analysis file:
+
+```text
+dist/AttributeManagementApp/browser-stats.json
+```
+
+This file was uploaded to the official [esbuild Bundle Analyzer](https://esbuild.github.io/analyze/) to inspect bundle composition.
+
+**Note:** Webpack Bundle Analyzer was not used because the project uses esbuild.
+
+## 3. Baseline Bundle Sizes
+
+The initial production build generated the following results:
+
+| Bundle | Raw Size |
+|---|---:|
+| Initial chunk | 206.04 kB |
+| Main chunk | 96.52 kB |
+| Styles | 0 kB |
+| **Initial total** | **302.56 kB** |
+
+### Lazy-loaded chunks
+
+| Feature | Raw Size |
+|---|---:|
+| Attribute routes | 92.45 kB |
+| Additional chunk | 49.23 kB |
+| Dashboard | 12.25 kB |
+| Login | 6.48 kB |
+| Additional chunk | 3.93 kB |
+| Page not found | 0.54 kB |
+
+## 4. Three Largest Modules
+
+The esbuild analyzer treemap showed the following three largest visible module contributions:
+
+| Rank | Module | Approximate Size |
+|---|---|---:|
+| 1 | `@angular/core` – `_debug_node-chunk.mjs` | 122.0 kB |
+| 2 | `@angular/router` – `_router-chunk.mjs` | 85.4 kB |
+| 3 | `@angular/forms` – `forms.mjs` | 60.5 kB |
+
+These are library module contributions, not individual application files. Their sizes should not be added together to calculate the initial bundle size.
+
+## 5. Optimization Investigation
+
+The following checks were performed:
+
+### A. Barrel imports
+
+Searched application TypeScript files for `/index` imports.
+
+**Result:** No barrel imports were found.
+
+### B. Unused imports
+
+Executed:
+
+```bash
+npx tsc --noEmit --noUnusedLocals -p tsconfig.app.json
+```
+
+**Result:** No unused local declarations or imports were reported.
+
+### C. Forms imports
+
+Reviewed `FormsModule` and `ReactiveFormsModule` usage.
+
+- Add Attribute uses reactive forms.
+- Attribute List uses reactive forms.
+- Edit Attribute uses template-driven forms.
+- Login uses template-driven forms.
+
+All imports are required and were retained.
+
+### D. Lazy loading
+
+Reviewed `app.routes.ts`.
+
+The application uses:
+
+- `loadChildren` for attribute routes.
+- `loadComponent` for Dashboard.
+- `loadComponent` for Login.
+- `loadComponent` for Page Not Found.
+
+The production build confirms separate lazy-loaded chunks for these features.
+
+### E. Angular CDK
+
+Reviewed the `ScrollingModule` import in DataTable.
+
+It is required for Angular CDK virtual scrolling, implemented in Task 8, and was retained.
+
+## 6. Optimization Findings
+
+The application already implements lazy loading, which prevents all feature code from being loaded in the initial bundle.
+
+The optimization review also confirmed that unnecessary barrel imports and unused imports were not identified.
+
+No additional source-code changes were made because the inspected imports and dependencies are required for existing functionality.
+
+## 7. Before and After Comparison
+
+| Measurement | Before | After |
+|---|---:|---:|
+| Initial bundle | 302.56 kB | Not measured |
+| Bundle reduction | — | Not established |
+
+The baseline was recorded successfully. A separate post-optimization build was not performed because the investigation did not identify a safe additional code change with a demonstrated size reduction.
+
+## 8. Conclusion
+
+The Angular application uses production build optimization and lazy-loaded feature routes. Bundle composition was analyzed using the official esbuild analyzer, and the three largest visible module contributions were identified.
+
+Unused imports, barrel imports, form dependencies, and CDK dependencies were reviewed. No unnecessary dependencies were removed.
+
+The investigation confirms that the application already has a sound lazy-loading structure. Further optimization should be based on measurable bundle analysis rather than removing required functionality.
+
+### 10. Implement a Global ErrorHandler:
+   • Catches all unhandled errors
+   • Logs to an ErrorLogService (in-memory, viewable on an /admin/errors route — Admin only)
+   • User-friendly messages via ToastService (never expose stack traces)
+   • HTTP error categorization: 400="Invalid request", 401="Please log in", 403="Access denied", 404="Not found", 500+="Server error, try again"
