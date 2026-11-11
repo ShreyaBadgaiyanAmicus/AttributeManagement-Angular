@@ -2403,7 +2403,82 @@ The investigation confirms that the application already has a sound lazy-loading
 ### 12. Code Review Exercise: The trainer will provide a deliberately poorly-written Angular component (~120 lines) containing at least 12 issues: naming violations, subscription leaks, logic in templates, hardcoded values, missing types, nested subscribes, manual DOM manipulation, no error handling, etc. Identify ALL issues, categorize them, and rewrite the component.
 
 
-### 13. 13. Self-Audit: Review your own codebase from Assignments 1–3. Write SELF-AUDIT.md:
+### 13. Self-Audit: Review your own codebase from Assignments 1–3. Write SELF-AUDIT.md:
    • 5 things you did well (with file/line references)
    • 5 things you would improve (with what the fix would be)
    • Apply the top 3 improvements to your actual code
+
+---
+
+# Project Documentation
+
+This application includes the following supporting documents:
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — application structure, component tree, state management, service responsibilities, and architectural overview.
+- [DECISIONS.md](DECISIONS.md) — major design decisions, alternatives considered, and reasoning behind the final implementation.
+- [PERFORMANCE.md](PERFORMANCE.md) — Lighthouse baseline, bundle analysis, and optimization notes.
+- [BUGS.md](BUGS.md) — deliberate bug scenarios from Assignment 2, the observed symptoms, and the fixes applied.
+- [STRICT-MODE.md](STRICT-MODE.md) — TypeScript strict-mode validation and key fixes for compile-time safety.
+- [SELF-AUDIT.md](SELF-AUDIT.md) — codebase review, strengths, weaknesses, and concrete improvements applied.
+
+## Quick start
+
+You need both services running for the app to work correctly:
+
+1. Start the mock JSON API backend:
+
+```bash
+npm install
+npm run api
+```
+
+2. Start the Angular app in a second terminal:
+
+```bash
+ng serve
+```
+
+Then open:
+
+```text
+http://localhost:4200/
+```
+
+> The app depends on the JSON Server data source at `http://localhost:3000`, so `npm run api` must be running before the Angular app loads attribute, lookup, and activity data.
+
+## Architecture summary
+
+The application uses a modular Angular architecture with standalone components, route-based feature pages, and a centralized root store for app state. The key layers are:
+
+- Core: auth, guards, interceptors, global error handling, idle/session tracking
+- Features: attribute management, authentication, dashboard, admin error review
+- Shared: reusable UI components, directives, and pipes
+- Data layer: HTTP client + JSON Server + DTO-to-model mapping
+
+This structure keeps business logic, app-wide concerns, and reusable UI elements clearly separated while supporting lazy loading and maintainability.
+
+## Folder structure
+
+```text
+src/
+  app/
+    core/
+      guards/
+      handlers/
+      interceptors/
+      services/
+    features/
+      admin/
+      attributes/
+      auth/
+      dashboard/
+    shared/
+      components/
+      directives/
+      pipes/
+  environments/
+```
+
+## Documentation status
+
+The project documentation set is complete and aligned with the assignment requirements: setup/run instructions, architecture overview, state and service responsibilities, design decisions, performance, strict-mode analysis, bug logs, and self-audit findings.
